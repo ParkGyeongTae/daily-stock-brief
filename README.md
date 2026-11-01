@@ -1,1 +1,1 @@
-# daily-stock-brief
+AGENTS.md
