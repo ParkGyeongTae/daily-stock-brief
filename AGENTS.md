@@ -19,7 +19,7 @@
 
 ### 날짜 기준
 
-`TZ=Asia/Seoul date`로 브리핑 날짜를 확인한다. 실제 실행 시각과 무관하게 **당일 07:00 KST**를 기준으로 다음 기간을 적용한다. 주말·휴장일에도 늘리지 않는다.
+실행 시작 시 `TZ=Asia/Seoul date +%F`로 브리핑 날짜를 한 번 확인해 고정하고, 시세 조회와 가격 계산에도 같은 날짜를 전달한다. 실제 실행 시각과 무관하게 **브리핑 날짜 07:00 KST**를 기준으로 다음 기간을 적용한다. 주말·휴장일에도 늘리지 않는다.
 
 | 용도 | 기간·조건 |
 |---|---|
@@ -72,7 +72,7 @@ Reuters, AP, BBC, NYT, The Guardian, Politico(EU), The Verge, Ars Technica, USA 
 ### 제외 조건과 위험 점검
 
 - 주가 상승만으로 긍정 신호를 인정하지 않는다.
-- 시세 조회의 `daily_change_pct`에 한국 하루 15% 이상·미국 20% 이상 상승이 있거나, 72시간 기사에서 상한가·같은 수준의 급등이 확인되면 제외한다.
+- 시세 조회의 `surge_excluded`가 `true`이거나, 72시간 기사에서 한국 하루 15% 이상·미국 20% 이상 상승 또는 상한가가 확인되면 제외한다. `surge_excluded`는 반올림 전 가격으로 계산하며, 표시용 `daily_change_pct`로 판정하지 않는다.
 - 아래 **위험 검색을 마친 후보만** 확정한다. 대체 후보도 동일하다.
 
 후보마다 회사명(가능하면 종목코드·티커 포함)과 30일 기간을 지정해 두 묶음을 각각 WebSearch한다. 한국은 한국어, 미국은 영어로 검색한다.
@@ -90,7 +90,7 @@ Reuters, AP, BBC, NYT, The Guardian, Politico(EU), The Verge, Ars Technica, USA 
 
 ### 상승여력과 선정 순서
 
-상승여력은 목표주가 ÷ 직전 거래일 종가 − 1이다. **가격 계산**의 `levels()`가 반환한 `upside_raw`로 판단한다.
+상승여력은 목표주가 ÷ 직전 거래일 종가 − 1이다. **가격 계산**의 `levels()`는 `Decimal`로 계산하며, 15% 충족 여부는 `upside_eligible`로 판단한다. 순위 비교에는 `Decimal(upside_raw)`를 쓰고 표시용 `upside_pct`로 판정하지 않는다.
 
 - **15% 미만이면 제외**한다. 목표가 또는 직전 거래일 종가가 없으면 `미확인`이다.
 - 가점은 15% 이상이면 1점, 미확인이면 0점이다. 총점은 신호 점수 + 가점으로 기록한다.
@@ -106,11 +106,26 @@ Reuters, AP, BBC, NYT, The Guardian, Politico(EU), The Verge, Ars Technica, USA 
 - 오늘 안에서도 같은 기업을 두 번 쓰지 않는다.
 - **오늘 부모 메시지가 있으면 새로 만들지 않고 해당 스레드만 읽는다.** 한국·미국 섹션 답글이 모두 있으면 아무것도 게시하지 않고 종료한다. 분할 게시였다면 이어지는 답글까지 완성됐는지 확인한다.
 - 빠진 섹션은 부모에 적힌 기업·순서로만 작성하고 위험 점검을 다시 한다. 분할 답글 일부가 이미 있으면 게시된 항목은 건너뛰고 누락 항목만 이어 쓴다. 제외·미완료 기업은 같은 위치에 이름과 보류 사유만 쓰며 대체 기업·가격 블록은 넣지 않는다. 이 보류 표시는 일반 기업 항목·빈 섹션 형식의 예외다.
-- 재실행 가격은 부모 작성 당시의 종가·목표가를 찾아 상승여력을 맞춘다. 찾지 못하면 새 값을 쓰고 💵 제목 끝에 `(부모 메시지 작성 후 갱신)`을 붙인다. 기간은 부모 날짜 + 28일이다.
+- 가격은 아래 **게시 전 스냅샷**에서 복원한다. 스냅샷이 없으면 현재 세션의 원래 조회 결과나 이미 게시된 해당 기업 답글에서 종가·목표가·출처·기준일을 모두 확인한 경우에만 복원한다. 원래 목표가가 미확인이거나 매매가 미산출이었다면 그 상태도 보존한다.
+- 원래 가격의 값·미확인 상태를 복원하지 못하면 해당 위치에 `회사명 — 보류: 부모 작성 당시 가격 근거 복원 불가`만 쓴다. 새 시세·목표가로 대체하거나 부모의 반올림된 상승여력에서 가격을 역산하지 않는다. 종가를 복원했으면 `levels()`로 다시 계산하고, 원래 매매가 미산출이었다면 그 예외 형식을 유지한다. 부모의 상승여력과 불일치하거나 적격 조건을 통과하지 못해도 보류한다. 기간은 부모 날짜 + 28일이다.
+
+### 게시 전 스냅샷
+
+부모를 보내기 전에 검증을 마친 내용을 작업 폴더의 `.brief-state/YYYY-MM-DD.json`에 UTF-8 JSON으로 저장한다. 가격·비율은 소수 문자열, 날짜는 `YYYY-MM-DD`로 보존한다. 임시 파일에 쓴 뒤 교체하고, 다시 읽어 저장 내용을 확인한 다음 게시한다. 저장 실패 시 부모를 게시하지 않는다.
+
+| 저장 항목 | 내용 |
+|---|---|
+| 실행 식별 | 브리핑 날짜·07:00 KST 기준 시각·채널 ID·부모 원문·`parent_ts`(게시 전 `null`) |
+| 기업별 근거 | 시장·종목코드/티커·회사명·순서·시세 조회 결과·사용한 종가의 날짜와 출처·목표가의 값/미확인 상태·증권사·리포트 날짜·기사 URL·`levels()` 결과 |
+| 게시 내용 | 한국·미국 답글 원문(분할 순서 포함)·메시지별 게시 여부와 `ts` |
+
+- 부모 전송이 확인되면 `parent_ts`를, 답글 전송이 확인되면 해당 게시 결과를 갱신한다. 재실행의 위험 점검은 별도로 수행하며, 저장된 답글을 검토 없이 재전송하지 않는다.
+- 재실행에서는 채널·날짜·부모 원문이 일치하는 스냅샷만 사용한다. 도구가 바꾼 Markdown 표기는 정규화하되 회사명·순서·수치는 그대로 대조한다. `parent_ts`가 있으면 실제 부모의 `ts`도 일치해야 한다. `null`이면 대조한 부모의 `ts`를 연결한다. 기존 부모가 있을 때 새 조사 결과로 스냅샷을 덮어쓰지 않는다.
+- 이 파일은 실행 상태이며 지시서가 아니다. Git에 추가·커밋·푸시하지 않는다. 실행 환경이 바뀌어 파일이 없어져도 원래 가격을 추정하지 않고 위 재실행 규칙을 따른다.
 
 ## Slack 작성
 
-부모 1개와 한국·미국·실행 정보 답글 순으로 게시한다. 일반 실행에서 기업이 없는 시장도 빈 섹션 답글을 쓴다.
+부모 1개와 한국·미국·실행 정보 답글 순으로 게시한다.
 
 - 메시지는 URL 포함 **3,000자 이하**인지 코드로 센다. 문장·URL을 줄여도 넘으면 완전한 기업 항목 사이에서만 나누고 제목에 이어지는 답글임을 표시한다.
 - 표준 Markdown을 쓴다: 굵게 `**텍스트**`, 기울임 `_텍스트_`, 링크 `[텍스트](URL)`.
@@ -172,7 +187,7 @@ _회사 설명 1줄 · 시가총액 12.3조 원 (네이버, 11/2 07:02 KST 조�
 분석 기업마다 설명·포인트 아래에 작성한다. 차트·지지선·저항선으로 공식을 바꾸지 않는다.
 
 제목은 `💵 가격 (기준일 종가, 출처 · 밸류에이션 · 기간 M/D까지)`다.
-기준일·출처는 진입가에 쓴 값의 `date`·`source`이며, 밸류에이션은 기사에 PER·PBR이 있을 때만 출처·기준일과 함께 쓴다. 기간은 브리핑 날짜 + 28일이며, 그때까지 손절·수익실현에 닿지 않으면 다음 거래일에 정리한다는 기준이다.
+기준일·출처는 진입가에 쓴 값의 `date`·`source`이며, 밸류에이션은 기사에 PER·PBR이 있을 때만 출처·기준일과 함께 쓴다. 기간은 브리핑 날짜 + 28일이며, 그 이후에는 이 참고값을 사용하지 않는다는 기준이다.
 
 가격 줄은 다음 순서를 유지한다. 한국은 원, 미국은 달러(`$182.40`)로 쓴다.
 
@@ -184,11 +199,13 @@ _회사 설명 1줄 · 시가총액 12.3조 원 (네이버, 11/2 07:02 KST 조�
 | 손절 | 진입가 × 0.92, 괄호는 `(−8%)` |
 
 - 목표가는 보통 6~12개월 기준이므로 4주 수익실현가로 그대로 쓰지 않는다. 선정 기사에 없으면 `회사명 목표주가` / `티커 price target`으로 추가 검색한다. 30일 안의 기사로 확인하지 못하면 `• 목표주가 미확인`으로 쓰고, 컨센서스 평균·오래된 값으로 채우지 않는다.
-- 한국은 KRX 호가 단위, 미국은 1센트 단위로 손절은 올림·수익실현은 내림한다. **반드시 아래 코드로 계산**하고, 상승여력 판정은 반올림 전 값으로 한다.
+- 한국은 KRX 호가 단위, 미국은 1센트 단위로 손절은 올림·수익실현은 내림한다. **반드시 아래 코드로 계산**한다.
 
 #### 종가 조회 실패 시
 
-최상위 `error` 또는 다른 동일 시장 후보보다 오래된 `date`이면 기사 가격을 확인한다. 선정 기사에 없으면 `회사명 주가` / `티커 stock price`로 한 번 더 검색해 72시간 안의 기사에서 찾는다.
+최상위 `error`가 있으면 기사 가격을 확인한다. 선정 기사에 없으면 `회사명 주가` / `티커 stock price`로 한 번 더 검색해 72시간 안의 기사에서 찾는다.
+
+스크립트의 `expected_date`가 있으면 기사 종가의 거래일도 그 날짜와 같아야 한다. 거래소 달력 조회가 실패해 `expected_date`가 없으면 시장별 휴장·거래일을 WebSearch로 확인하고 근거를 기록한다. 직전 거래일 자체를 확인하지 못하면 매매가를 산출하지 않는다. 후보 간 날짜 비교나 주말만 제외하는 계산으로 대체하지 않는다.
 
 - **직전 거래일 종가 확인**: 그 값으로 계산하고 가격 제목의 출처를 매체명으로 쓴다.
 - **확인 불가**: 제목은 `💵 가격 (매매가 미산출: 직전 거래일 종가 없음)`으로 쓰고 아래 두 줄만 둔다. 목표가에는 상승여력을 붙이지 않는다.
@@ -200,29 +217,45 @@ _회사 설명 1줄 · 시가총액 12.3조 원 (네이버, 11/2 07:02 KST 조�
 ### 가격 계산
 
 ```python
-import math
 from datetime import date, timedelta
+from decimal import Decimal, ROUND_CEILING, ROUND_FLOOR, ROUND_HALF_UP
+
+D = Decimal
+
+def price_value(value):
+    p = D(str(value))
+    if not p.is_finite() or p <= 0:
+        raise ValueError("가격은 유한한 양수여야 함")
+    return p
+
+def percent(value):
+    return int(value.quantize(D("1"), rounding=ROUND_HALF_UP))
 
 def krx_tick(p):  # KRX 호가 단위 (유가증권·코스닥 공통)
     for limit, t in [(2000, 1), (5000, 5), (20000, 10), (50000, 50), (200000, 100), (500000, 500)]:
         if p < limit:
-            return t
-    return 1000
+            return D(t)
+    return D(1000)
 
 # price: 직전 거래일 종가, target: 목표주가(미확인이면 None), market: "KR" 또는 "US"
 def levels(price, target, market, brief_date):
-    # 목표주가는 12개월 기준이라 4주 기간에 맞게 +16%를 넘지 않게 한다
-    stop, tp = price * 0.92, min(target or price * 1.16, price * 1.16)
-    if market == "KR":
-        stop = math.ceil(round(stop / krx_tick(stop), 6)) * krx_tick(stop)
-        tp = math.floor(round(tp / krx_tick(tp), 6)) * krx_tick(tp)
-    else:
-        stop = math.ceil(round(stop * 100, 6)) / 100
-        tp = math.floor(round(tp * 100, 6)) / 100
-    upside = target / price - 1 if target else None
-    return {"stop": stop, "take_profit": tp, "take_profit_pct": round((tp / price - 1) * 100),
-            "upside_raw": upside,
-            "upside_pct": round(upside * 100) if upside is not None else None,
+    if market not in {"KR", "US"}:
+        raise ValueError("시장은 KR 또는 US여야 함")
+    price = price_value(price)
+    target = price_value(target) if target is not None else None
+    stop, tp = price * D("0.92"), price * D("1.16")
+    if target is not None:
+        tp = min(target, tp)
+    stop_tick = krx_tick(stop) if market == "KR" else D("0.01")
+    tp_tick = krx_tick(tp) if market == "KR" else D("0.01")
+    stop = (stop / stop_tick).to_integral_value(rounding=ROUND_CEILING) * stop_tick
+    tp = (tp / tp_tick).to_integral_value(rounding=ROUND_FLOOR) * tp_tick
+    upside = target / price - 1 if target is not None else None
+    return {"stop": str(stop), "take_profit": str(tp),
+            "take_profit_pct": percent((tp / price - 1) * 100),
+            "upside_raw": str(upside) if upside is not None else None,
+            "upside_eligible": target >= price * D("1.15") if target is not None else None,
+            "upside_pct": percent(upside * 100) if upside is not None else None,
             "until": (brief_date + timedelta(days=28)).strftime("%-m/%-d")}
 
 print(levels(71200, 90000, "KR", date(2026, 11, 2)))
@@ -232,21 +265,46 @@ print(levels(71200, 90000, "KR", date(2026, 11, 2)))
 
 후보를 확정하기 전에 아래 명령에 `KR:종목코드` / `US:티커`를 한 번에 넘긴다. 종목마다 JSON 한 줄을 출력한다.
 
-- 종가·등락률은 한국 네이버 우선, 실패 시 Yahoo Finance(`.KS` → `.KQ`), 미국은 Yahoo Finance다.
-- 시가총액은 한국 네이버 시세 API, 미국 Yahoo Finance의 `marketCap` 제공값이다. 종가 조회와 독립 처리하며 네이버는 `yfinance` 설치 실패 시에도 사용할 수 있다.
-- `date`·`close`는 브리핑 날짜 이전의 가장 최근 거래일 종가다. 오늘 행은 제외한다. `daily_change_pct`는 브리핑 날짜 − 3일 이후의 일간 등락률이다.
+- 종가·등락률은 한국 네이버 우선, 실패 시 Yahoo Finance(`.KS` → `.KQ`), 미국은 Yahoo Finance다. 각 출처의 마지막 거래일이 거래소 달력의 `expected_date`와 일치해야 성공이다. 오래된 응답은 오류로 기록하고 다음 출처를 조회한다.
+- 시가총액은 한국 네이버 시세 API, 미국 Yahoo Finance의 `marketCap` 제공값이다. 종가 조회와 독립 처리하므로 종가·달력 조회가 실패해도 시가총액을 조회한다.
+- `expected_date`는 브리핑 날짜 전날까지의 최근 거래일이다. `exchange_calendars`의 한국 `XKRX`·미국 `XNYS` 달력을 사용한다. 미국 NYSE·Nasdaq에는 같은 거래일 달력을 적용한다. 달력 조회 실패 시 종가를 성공으로 처리하지 않고 위 **종가 조회 실패 시**를 따른다.
+- 내부 날짜는 `YYYY-MM-DD`이며, 메시지에서는 `M/D`로 표시한다. `daily_change_pct`는 브리핑 날짜 − 3일 이후의 일간 등락률을 소수 둘째 자리로 반올림한 표시값이다. `surge_excluded`는 원래 가격을 `Decimal`로 비교한 결과다.
+- 대체 출처로 성공해도 `warnings`에 남은 이전 출처 오류를 최종 기록에 포함한다.
 - `market_cap`은 원/달러 값(`value`), 통화(`currency`), 출처(`source`), KST 조회 시각(`retrieved_at`), 표시 문구(`display`)다. `market_cap.error`만 있으면 종가 조회 실패로 취급하지 않고 `시가총액 미확인`을 표시한다.
 
+아래 명령은 Python 3.10 이상에서 설치·실행에 같은 인터프리터를 쓴다. 설치 실패는 기록하고 조회 스크립트는 계속 실행해 이용 가능한 결과를 남긴다.
+
 ```bash
-pip install -q yfinance 2>/dev/null
-python3 - KR:005930 US:NVDA 2>/dev/null <<'EOF'
+python3 -m pip install -q yfinance 'exchange_calendars>=4.11.3'
+# 첫 인수는 실행 시작 시 고정한 브리핑 날짜로, 나머지는 실제 후보로 바꾼다.
+python3 - 2026-11-02 KR:005930 US:NVDA <<'EOF'
 import ast, json, sys, urllib.request
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, ROUND_HALF_UP
+from functools import lru_cache
 
 KST = timezone(timedelta(hours=9))
-today = datetime.now(KST).date()  # 브리핑 날짜 (KST)
+today = date.fromisoformat(sys.argv[1])  # 실행 시작 시 고정한 브리핑 날짜
 window_start = today - timedelta(days=3)  # 수집 기간이 걸친 첫 날짜
+
+@lru_cache(maxsize=2)
+def trading_calendar(market):
+    import exchange_calendars as xcals
+    if tuple(int(p) for p in xcals.__version__.split(".")[:3]) < (4, 11, 3):
+        raise ValueError("exchange_calendars 4.11.3 이상 필요")
+    name = {"KR": "XKRX", "US": "XNYS"}[market]
+    # 일요일·연휴에도 조회 날짜가 달력의 마지막 세션을 넘지 않게 여유를 둔다.
+    return xcals.get_calendar(name, start=today - timedelta(days=40), end=today + timedelta(days=14))
+
+def expected_session(market):
+    calendar = trading_calendar(market)
+    return calendar.date_to_session(today - timedelta(days=1), direction="previous").date()
+
+def price_value(value):
+    p = Decimal(str(value))
+    if not p.is_finite() or p <= 0:
+        raise ValueError("가격은 유한한 양수여야 함")
+    return p
 
 def naver(code):
     url = (f"https://api.finance.naver.com/siseJson.naver?symbol={code}&requestType=1&timeframe=day"
@@ -257,8 +315,10 @@ def naver(code):
 
 def yahoo(symbol):
     import yfinance as yf
-    h = yf.Ticker(symbol).history(period="1mo", auto_adjust=False)
-    return [(ts.date(), round(float(c), 2)) for ts, c in h["Close"].dropna().items()]
+    h = yf.Ticker(symbol).history(start=(today - timedelta(days=30)).isoformat(),
+                                  end=today.isoformat(), auto_adjust=False, timeout=10)
+    return [(ts.date(), Decimal(str(c)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
+            for ts, c in h["Close"].dropna().items()]
 
 def format_cap(value, currency):
     for scale, unit in [(10**12, "조"), (10**8, "억"), (10**4, "만"), (1, "")]:
@@ -302,6 +362,12 @@ def market_cap(market, code):
                 "error": f"{type(e).__name__}: {e}"[:200]}
 
 def quote(market, code):
+    base = {"market": market, "code": code, "expected_date": None}
+    try:
+        expected = expected_session(market)
+        base["expected_date"] = expected.isoformat()
+    except Exception as e:
+        return {**base, "error": [f"거래소 달력: {type(e).__name__}: {e}"[:200]]}
     if market == "KR":
         sources = [("네이버", lambda: naver(code)), ("Yahoo Finance", lambda: yahoo(f"{code}.KS")),
                    ("Yahoo Finance", lambda: yahoo(f"{code}.KQ"))]
@@ -310,20 +376,34 @@ def quote(market, code):
     errors = []
     for name, fetch in sources:
         try:
-            rows = [r for r in fetch() if r[0] < today]  # 오늘 날짜 행은 장중 가격일 수 있으므로 뺀다
+            rows = sorted((d, price_value(c)) for d, c in fetch() if d < today)
+            if len(rows) < 2:
+                raise ValueError("종가·등락률 계산에 필요한 데이터 없음")
+            if rows[-1][0] != expected:
+                raise ValueError(f"종가 기준일 불일치: {rows[-1][0]} (기대: {expected})")
+            # 휴장일을 넘긴 정상 등락과 거래일 데이터 누락을 구분한다.
+            prices = dict(rows)
+            calendar = trading_calendar(market)
+            sessions = calendar.sessions_in_range(window_start, expected) if window_start <= expected else []
+            changes, surge = {}, False
+            threshold = Decimal("1.15") if market == "KR" else Decimal("1.20")
+            for session in sessions:
+                d = session.date()
+                previous = calendar.previous_session(session).date()
+                if d not in prices or previous not in prices:
+                    raise ValueError(f"일간 등락률 거래일 데이터 누락: {previous} / {d}")
+                p, c = prices[previous], prices[d]
+                changes[d.isoformat()] = str(((c / p - 1) * 100).quantize(
+                    Decimal("0.01"), rounding=ROUND_HALF_UP))
+                surge = surge or c >= p * threshold
+            return {**base, "source": name, "date": expected.isoformat(),
+                    "close": str(rows[-1][1]), "daily_change_pct": changes,
+                    "surge_excluded": surge, "warnings": errors}
         except Exception as e:
             errors.append(f"{name}: {type(e).__name__}: {e}"[:200])
-            continue
-        if len(rows) < 2:
-            errors.append(f"{name}: 데이터 없음")
-            continue
-        changes = {f"{d:%-m/%-d}": round((c / p - 1) * 100, 2)
-                   for (d, c), (_, p) in zip(rows[1:], rows) if d >= window_start}
-        return {"market": market, "code": code, "source": name, "date": f"{rows[-1][0]:%-m/%-d}",
-                "close": rows[-1][1], "daily_change_pct": changes}
-    return {"market": market, "code": code, "error": errors}
+    return {**base, "error": errors}
 
-for arg in sys.argv[1:]:
+for arg in sys.argv[2:]:
     market, code = arg.split(":", 1)
     result = quote(market, code)
     result["market_cap"] = market_cap(market, code)
@@ -400,12 +480,12 @@ EOF
 
 ## 실행·게시 순서
 
-1. **기준 설정**: 날짜 기준의 세 기간을 계산한다.
+1. **기준 설정**: 브리핑 날짜를 고정하고 세 기간을 계산한다.
 2. **채널 확인**: ID `C0CDFHG8PL7`로 읽고, 실패하면 `slack_search_channels`로 `daily-stock-brief`를 찾는다. 중복 목록을 만들고, 오늘 부모가 있으면 **중복 방지와 재실행** 규칙을 따른다.
 3. **후보 조사**: 신규 신호·발행일·사건일·인정 근거를 확인하고 후보별 위험 점검을 수행한다.
 4. **후보 확정**: 남은 후보의 시세·목표가를 조회해 `levels()`로 계산하고 제외 조건·선정 순서를 적용한다. 대체 후보도 같은 절차를 거친다.
-5. **작성·검증**: 부모와 기업 답글을 작성하고 아래 게시 전 점검을 통과시킨다.
-6. **직접 게시**: `slack_send_message`로 부모를 보내고 응답의 `ts`를 `thread_ts`로 써서 한국·미국 순으로 답글을 보낸다. 초안 도구는 쓰지 않는다. `reply_broadcast`·`unfurl_app_links`는 설정하지 않는다.
+5. **작성·검증**: 부모와 기업 답글을 작성하고 아래 게시 전 점검을 통과시킨 뒤 스냅샷을 저장·확인한다.
+6. **직접 게시**: `slack_send_message`로 부모를 보내고 응답의 `ts`를 `thread_ts`로 써서 한국·미국 순으로 답글을 보낸다. 각 게시 결과를 스냅샷에 기록한다. 초안 도구는 쓰지 않는다. `reply_broadcast`·`unfurl_app_links`는 설정하지 않는다.
 7. **마무리**: 실행 정보를 집계해 마지막 답글로 보내고, 아래 최종 결과를 남긴다.
 
 ### 게시 전 점검
@@ -414,8 +494,8 @@ EOF
 
 - **적격성**: 날짜·중복·신호 인정·위험 점검·급등·상승여력 조건을 통과했으며 순위와 기록이 일치하는가.
 - **내용**: 설명 1줄·포인트 3줄이 정해진 순서이고, 모든 사실·수치·전망 인용에 근거가 있으며 권유·예측 문장이 없는가.
-- **가격**: 직전 거래일 종가·목표가 출처와 기준일, `levels()` 결과·호가 단위·기간이 맞는가. 미산출이면 예외 두 줄 형식인가.
-- **일치**: 부모·답글의 회사명·순서·상승여력이 같은가. 재실행 보류·가격 갱신을 명시했는가.
+- **가격**: 종가 거래일이 `expected_date` 또는 검색으로 확인한 직전 거래일과 같은가. 목표가 근거, `levels()` 결과·호가 단위·기간이 맞는가. 미산출이면 예외 두 줄 형식인가.
+- **일치**: 부모·답글·스냅샷의 회사명·순서·상승여력이 같은가. 재실행에서 복원하지 못하거나 부적격인 기업을 보류했는가.
 - **표시**: 시가총액은 `display` 그대로이며 조회 시각을 종가 기준일로 쓰지 않았는가. 링크·Markdown이 유효하고 각 메시지 길이를 코드로 확인했는가.
 
 ### 실패·재시도
@@ -434,8 +514,8 @@ EOF
 답글: 한국 n개 기업(이름) · 미국 n개 기업(이름) · 실행 정보 게시 여부
 
 생략·대체:
-- 빈 섹션·미달·분할 게시·채널 검색 대체·재실행·보류·가격 갱신 사유
-- 종가·시가총액 조회 실패 기업, 대체 출처·매매가 미산출 여부·오류
+- 빈 섹션·미달·분할 게시·채널 검색 대체·재실행·보류 사유
+- 종가·시가총액 조회 실패 기업, 달력·기준일 불일치 오류·warnings·대체 출처·매매가 미산출 여부
 
 후보·선정 근거:
 - 선정 기업과 탈락 상위 후보의 신호 점수·가점·총점·탈락 사유
@@ -447,5 +527,5 @@ EOF
 - 제외·미완료 근거의 URL·발행일·사건 요약 또는 검색 오류
 
 오류:
-- 실패한 메시지(부모/한국/미국/실행 정보)·시도 횟수·오류, 없으면 없음
+- 실패한 메시지(부모/한국/미국/실행 정보)·시도 횟수·오류, 스냅샷 저장·복원 오류, 없으면 없음
 ```
