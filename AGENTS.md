@@ -160,8 +160,8 @@ Reuters, AP, BBC, NYT, The Guardian, Politico(EU), The Verge, Ars Technica, USA 
 - 금융·보험·리츠는 분기 영업이익·영업현금흐름 항목이 없거나 의미가 다르므로 `sustainability`를 쓰지 않는다. 금융·보험은 최신 결산기의 실제 순이익 양수와 적용 규제자본비율의 최소 기준 충족, 리츠는 정의가 명시된 FFO/AFFO 양수와 같은 기간·총액/주당 기준의 `FFO/AFFO ≥ 배당 지급액`을 30일 기사·공식 발표 검색 결과로 확인한다. 확인하지 못하면 보류한다.
 - 일회성 처분이익·평가이익이나 운전자본의 일시적 회수에 의존한 흑자·현금흐름이라는 기사가 있으면 반복 가능한 수익·현금 창출 근거를 추가 확인한다.
 - 신규 데이터센터·공장 등 대규모 투자가 가치평가의 핵심이면 투자금, 확정 자금과 미확정 자금의 구분, 차입·임대료 차감·증자 등 조달 방식 및 비용을 확인한다. 핵심 자금조달이 미확정이거나 그 비용을 반영한 가치평가 근거가 없으면 보류한다. `증자 계획 없음`을 자금 확보로 해석하지 않는다.
-- **실적 지속성 등급 2**: 위 조건을 통과하고 전년 동기 대비 영업이익과 영업현금흐름이 모두 유지·개선됐다(`yoy`의 두 값 `true`). 업종 대체 지표는 이익·건전성이 모두 유지·개선돼야 한다.
-- **실적 지속성 등급 1**: 위 조건은 통과했지만 전년 동기 비교가 없거나, 악화한 항목의 원인과 반복 가능성을 기사로 확인한 경우다. `yoy` 악화의 원인을 확인하지 못하면 보류하며 등급 1로 통과시키지 않는다.
+- **실적 지속성 등급 2**: 위 조건을 통과하고 전년 동기 대비 영업이익과 영업현금흐름이 모두 유지·개선됐으며(`yoy`의 두 값 `true`), 최근 4분기 중 영업현금흐름 유출 분기가 없다(`ocf_negative_quarters_4q == 0`). 4분기 자료가 모두 없어 확인하지 못하면(`null`) 등급 2를 주지 않는다. 기사 수치로 판정할 때도 최근 4분기 중 유출 분기가 없음을 확인해야 등급 2다. 업종 대체 지표는 이익·건전성이 모두 유지·개선돼야 한다.
+- **실적 지속성 등급 1**: 위 조건은 통과했지만 전년 동기 비교가 없거나, 최근 4분기 중 영업현금흐름 유출 분기가 있거나(리스크 줄에 유출 분기와 금액을 밝힌다), 악화한 항목의 원인과 반복 가능성을 기사로 확인한 경우다. `yoy` 악화의 원인을 확인하지 못하면 보류하며 등급 1로 통과시키지 않는다.
 
 스크립트 결과(분기별 수치·대상 기간·출처)와 보충 기사 발행일·URL·일회성 여부·판정 근거를 저장한다.
 
@@ -950,7 +950,7 @@ EOF
 - `eps`·`bps`: 제공사 표시값과 기준 기간. 한국은 네이버의 최근 4분기 합산 EPS·최근 분기 BPS, 미국은 Yahoo `trailingEps`·`bookValue`다. 한국 `cnsEps`는 참고용 추정치이며 진입가에 쓰지 않는다.
 - `peers`·`history`: 동종 종목별 PER·PBR, 한국 최근 3개 실제 회계연도의 PER·ROE.
 - `valuation.comparisons`: 비교별 자사 배수·표본 수·중앙값·할인율·`passed`, 통과 비교의 `valuation_basis`(`levels()` 입력).
-- `quarters`·`sustainability`: Yahoo 분기 영업이익·영업현금흐름·FCF(최근 5분기)와 최신 분기 양수·전년 동기 유지 판정·등급.
+- `quarters`·`sustainability`: Yahoo 분기 영업이익·영업현금흐름·FCF(최근 5분기)와 최신 분기 양수·전년 동기 유지 판정·최근 4분기 영업현금 유출 횟수(`ocf_negative_quarters_4q`)·등급.
 - 오류는 최상위 `error`(조회 자체 실패), `errors`(동종·연간·분기 일부 실패), `sustainability.error`로 남긴다. 일부 실패는 해당 비교만 미확인으로 처리한다. 제공값은 조회 시점 값이며 종가 기준일과 시차가 있을 수 있으므로 조회 시각을 함께 저장한다.
 
 ```bash
@@ -1028,9 +1028,14 @@ def sustainability(quarters):
         result["yoy"] = {"period_end": prior["period_end"],
                          "operating_income_maintained": oi >= num(prior["operating_income"]),
                          "operating_cash_flow_maintained": ocf >= num(prior["operating_cash_flow"])}
+    # 현금흐름이 분기마다 크게 오가는 업종을 가려내려고 최근 4분기의 유출 횟수를 함께 본다(합산하지 않음).
+    recent = [num(q["operating_cash_flow"]) for q in quarters[:4]]
+    result["ocf_negative_quarters_4q"] = (sum(v < 0 for v in recent)
+                                          if len(recent) == 4 and None not in recent else None)
     yoy = result["yoy"]
     result["grade"] = (0 if not result["eligible"] else
-                       2 if yoy and yoy["operating_income_maintained"] and yoy["operating_cash_flow_maintained"] else 1)
+                       2 if yoy and yoy["operating_income_maintained"] and yoy["operating_cash_flow_maintained"]
+                       and result["ocf_negative_quarters_4q"] == 0 else 1)
     return result
 
 def kr(code):
