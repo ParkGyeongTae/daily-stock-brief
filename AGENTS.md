@@ -37,7 +37,7 @@
 
 ## 소스와 조회 원칙
 
-- 기사·공시는 직접 열지 않고 **WebSearch의 제목·URL·요약**으로 확인한다. DART·EDGAR 공시는 보도 기사로 확인한다. 검색 요약에 없는 본문을 읽은 것처럼 기록하거나 숫자·기간을 보완하지 않는다.
+- 기사·공시는 직접 열지 않고 **WebSearch의 제목·URL·요약**으로 확인한다. 예외로 아래 **신호 조회** 스크립트의 정형 데이터(DART OpenAPI 공시 목록, Yahoo Finance 투자의견·실적 발표, 네이버 리포트 목록)는 근거로 쓴다. 공시 본문의 금액·주당 배당금 등은 기사·검색 결과로 확인하며, EDGAR 공시는 보도 기사로 확인한다. 검색 요약에 없는 본문을 읽은 것처럼 기록하거나 숫자·기간을 보완하지 않는다.
 - 지표 스크립트가 제공하지 않는 EPS/BPS·실제 이익·현금흐름·FFO/AFFO·규제자본 수치가 기사 검색에서 부족하면 **회사 공식 실적 발표문·IR 보도자료의 검색 결과**를 보조 근거로 허용한다. 명시된 수치와 정의를 옮기는 범위이며 공시 원문·재무제표를 열거나 직접 분석하지 않는다. 발행일·대상 기간·기준·원문 URL을 확인하고 같은 30일 제한을 적용한다. 아래의 해당 수치에 관한 `기사 근거`에는 이 보조 근거도 포함한다. 동종·과거 배수 비교, 목표주가와 위험 판정은 계속 보도 기사로 확인한다.
 - 종가·일간 등락률·시가총액·추세 지표는 아래 **시세 조회** 스크립트를 쓴다. EPS·BPS·동종/자사 과거 PER·PBR·분기 영업이익·영업현금흐름은 아래 **가치·실적 지표 조회** 스크립트의 제공사 표시값(한국 네이버 금융, 미국·분기 실적 Yahoo Finance)을 우선 쓴다. 기사 검색은 신호·할인 이유·위험 판정과 제공값이 없는 비교의 보충에 쓴다. 제공값은 옮겨 쓰는 것이며, 허용하는 계산은 `직전 종가 ÷ 제공 EPS·BPS`, 비교값의 중앙값, 상대 할인율, 가치기준 진입가뿐이다. 이익·자산·미래 매출을 자체 추정하거나 재무제표 항목을 조합해 새 지표를 만들지 않는다.
 - 링크는 검색 결과에서 확인한 원문 URL만 쓰고 `utm_*` 등 추적 파라미터를 제거한다. Google News 리다이렉트 URL은 쓰지 않는다.
@@ -62,9 +62,11 @@ Reuters, AP, BBC, NYT, The Guardian, Politico(EU), The Verge, Ars Technica, USA 
 
 ### 조사 범위와 종료
 
-- 시장별로 아래 신호 여섯 종류를 각각 한 번 이상 검색한다. 회사명 없는 시장 탐색 검색에도 신호 기간 7일의 시작·끝을 명시하며, 여러 종류를 한 호출에 묶어도 종류별 검색어·결과·오류는 구분한다. 한 종류의 결과만 보고 다른 종류까지 조사했다고 기록하지 않는다.
+- 한국은 먼저 `신호 조회`의 `--discover-kr`로 신호 기간의 DART 자사주·배당·공급계약 공시를 모아 후보에 넣는다. 이 결과는 해당 세 종류의 시장 탐색으로 기록하고, 실패하면 그 세 종류를 기사로 검색한다.
+- 시장별로 아래 신호 여섯 종류를 각각 한 번 이상 검색한다(한국은 DART 탐색에 성공한 세 종류 제외). 회사명 없는 시장 탐색 검색에도 신호 기간 7일의 시작·끝을 명시하며, 여러 종류를 한 호출에 묶어도 종류별 검색어·결과·오류는 구분한다. 한 종류의 결과만 보고 다른 종류까지 조사했다고 기록하지 않는다.
 - 검색 결과에서 식별한 기업을 시장·종목코드/티커로 합쳐 후보 목록을 먼저 저장한다. 코드가 미확인이면 시장·회사명으로 임시 식별하고 나중에 병합한다. 동일 기업의 여러 기사·신호를 후보 수에 중복 가산하지 않는다.
-- 상세 검증은 시장별 최대 12개로 제한한다. 중복 제외 후 확인한 신호 점수 → 가장 최근의 인정 사건일 → 종목코드/티커 오름차순으로 조사 순서를 정한다. 신호 근거가 미완료이면 먼저 신호를 확인하며, 불명확한 점수를 임의로 높이지 않는다. 이는 조사 순서이며 최종 선정 순위를 대신하지 않는다. 한도를 넘긴 후보는 `미조사: 조사 한도`로 남긴다.
+- 발견한 모든 후보는 상세 검증 전에 중복 확인과 **시세 조회**(급등·추세)를 한 번에 일괄 실행한다. 여기서 확정된 중복·급등·추세 미충족 제외와 조회 오류 보류는 조사 한도에 세지 않는다. 시세 조회 1회에 너무 많은 종목을 넘겨 실행 제한에 걸리면 나눠 실행한다.
+- 이 빠른 확인을 통과한 후보의 상세 검증(신호 근거·저평가·실적·위험)은 시장별 최대 12개로 제한한다. 중복 제외 후 확인한 신호 점수 → 가장 최근의 인정 사건일 → 종목코드/티커 오름차순으로 조사 순서를 정한다. 신호 근거가 미완료이면 먼저 신호를 확인하며, 불명확한 점수를 임의로 높이지 않는다. 이는 조사 순서이며 최종 선정 순위를 대신하지 않는다. 한도를 넘긴 후보는 `미조사: 조사 한도`로 남긴다.
 - 미확인 항목은 필요한 숫자·기간·정의를 넣어 최대 두 번 추가 검색한 뒤 보류한다. 기사 검색에서 공식 실적 발표 검색으로 전환한 것도 이 횟수에 포함한다. 필수 검색의 일시적 오류는 같은 검색을 한 번 재시도하며, 계속 실패하면 조회 오류로 기록한다. 이 횟수는 Slack 전송의 3회 재시도와 별개다.
 - 선행 조건을 통과한 후보는 네 묶음 위험 검색을 모두 마쳐야 선정할 수 있다. 후속 검색에서 선행 판정을 바꾸는 자료가 나오면 해당 단계로 돌아가 재검증한다. 탈락 후보의 빈자리는 남은 조사 대상에서 같은 절차로 확인한다.
 - 독립적인 검색·후보 시세 조회는 도구가 지원하면 묶어서 호출하고 결과는 항목별로 확인한다. 한도나 실행 제한 때문에 조사하지 못한 기업·신호 종류를 숨기지 않는다. 선정 수를 채우려고 기간·필수 조건을 완화하지 않는다.
@@ -87,7 +89,17 @@ Reuters, AP, BBC, NYT, The Guardian, Politico(EU), The Verge, Ars Technica, USA 
 
 ### 긍정 신호와 점수
 
-다음 중 하나 이상을 충족해야 한다. 검색 요약에 근거가 부족하면 추가 검색하고, 끝내 확인하지 못한 항목은 0점으로 처리한다.
+다음 중 하나 이상을 충족해야 한다. 후보마다 아래 **신호 조회** 스크립트를 먼저 실행하고, 스크립트가 확인하지 못한 항목만 기사로 검색한다. 검색 요약에 근거가 부족하면 추가 검색하고, 끝내 확인하지 못한 항목은 0점으로 처리한다.
+
+| 스크립트 근거 | 인정 방법 |
+|---|---|
+| 미국 `latest_earnings` | `in_signal_window`·`beat`가 모두 `true`이면 **실적 컨센서스 상회 2점**. 지표는 `basis`의 Yahoo 제공 EPS이며 추정·실제가 같은 제공사 기준이다. 발표 시각이 사건일이다. |
+| 미국 `target_raises` | 신호 기간 안의 투자의견 상향 또는 목표가 상향(최초 커버리지 제외). **`target_raise_score`**를 점수로 쓰며 증권사·시각·기존/새 목표가를 기록한다. |
+| 한국 `disclosures` | DART 접수일이 사건일이며 공시 제목이 신호 종류(자사주·배당·공급계약)다. 정정 공시는 원 공시와 한 번만 센다. 자사주 금액·주식 수, 배당의 기존·새 주당 배당금, 계약 대상은 공시 제목·날짜로 기사를 검색해 확인하며, 확인하지 못하면 0점이다. |
+| 한국 `research_reports` | 신호 기간의 리포트 증권사·날짜 목록이다. 목표가·투자의견 상향 여부는 기사로 확인하며 목록만으로 점수를 주지 않는다. |
+| 한국 `earnings_releases` | 잠정실적 공시일(사건일) 확인용이다. 컨센서스 상회는 기사로 확인한다. |
+
+스크립트는 날짜만 있는 자료의 경계 날짜(신호 기간 시작일·브리핑 날짜)를 인정하지 않는다. 스크립트 `errors`·`error`는 해당 근거의 조회 오류이며 기사 검색으로 보충한다.
 
 | 신호 | 점수 | 인정 조건 |
 |---|---|---|
@@ -179,7 +191,7 @@ Reuters, AP, BBC, NYT, The Guardian, Politico(EU), The Verge, Ars Technica, USA 
 - 시세 조회의 `surge_excluded`가 `true`이거나, 신호 기간 7일의 기사에서 한국 하루 15% 이상·미국 20% 이상 상승 또는 상한가가 확인되면 제외한다. `surge_excluded`는 반올림 전 가격으로 계산하며, 표시용 `daily_change_pct`로 판정하지 않는다.
 - 아래 **위험 검색을 마친 후보만** 확정한다. 대체 후보도 동일하다.
 
-선행 조건을 통과한 후보마다 회사명(가능하면 종목코드·티커 포함)과 30일 기간을 지정해 네 묶음을 각각 WebSearch한다. 한국은 한국어, 미국은 영어로 검색한다. 선행 제외·보류로 건너뛰면 네 항목을 `미수행: 선행 단계와 사유`로 남기며 위험 점검 완료로 표시하지 않는다.
+선행 조건을 통과한 후보마다 회사명(가능하면 종목코드·티커 포함)과 30일 기간을 지정해 네 묶음을 각각 WebSearch한다. 한국은 `신호 조회`의 `risk_disclosures`(30일 DART 희석·소송·규제 공시)도 희석·규제·소송 묶음의 근거로 함께 판정하며, 이 목록 조회가 실패하면 기사 검색만으로 판정했음을 기록한다. 미국 `target_cuts_30d`(투자의견·목표가 하향)는 제외 사유가 아니며 리스크 줄과 추정치 하향 점검의 단서로 쓴다. 한국은 한국어, 미국은 영어로 검색한다. 선행 제외·보류로 건너뛰면 네 항목을 `미수행: 선행 단계와 사유`로 남기며 위험 점검 완료로 표시하지 않는다.
 
 | 묶음 | 한국어 | 영어 |
 |---|---|---|
@@ -188,7 +200,7 @@ Reuters, AP, BBC, NYT, The Guardian, Politico(EU), The Verge, Ars Technica, USA 
 | 이익 추정치 | `이익 추정치 하향 OR EPS 하향 OR 실적 전망 하향` | `earnings estimate cut OR EPS revision down OR earnings forecast lowered` |
 | 현금·자금조달 | `영업현금흐름 악화 OR 자금조달 OR 차입 부담` | `negative operating cash flow OR financing risk OR funding gap` |
 
-- **제외**: 30일 기사에서 해당 기업의 실적 하회·가이던스 하향·희석 공시·규제 조치·소송을 확인한 경우. 업종 제도 설명이나 일반적인 가능성만으로 제외하지 않는다.
+- **제외**: 30일 기사 또는 DART 공시에서 해당 기업의 실적 하회·가이던스 하향·희석 공시·규제 조치·소송을 확인한 경우. 업종 제도 설명이나 일반적인 가능성만으로 제외하지 않는다.
 - **추정치 하향 확인 시 보류**: 증권사·발표일·동일 지표와 기간의 기존 값·새 값을 확인한다. 하향 이후 같은 기간·기준의 추정치 유지·상향과 하향된 이익을 반영한 새 저평가 근거를 모두 확인한 경우에만 재검토한다. 주가가 더 많이 하락했다는 이유로 통과시키지 않는다. 회사 가이던스 하향은 위 제외 규칙을 따른다.
 - **현금·자금조달 위험**: 일반적인 가능성만으로 제외하지 않는다. 실제 지속적인 현금 유출·구조적 악화는 실적 지속성 규칙으로 제외하고, 핵심 자금조달 미확정·비용 미반영은 보류한다. 키워드만으로 판정하거나 계약 총액을 순이익·기업가치로 대체하지 않는다.
 - **위험 점검 미완료**: 관련 악재의 발행일·대상·사건을 추가 검색해도 확인하지 못하거나 필수 검색이 실패한 경우. 이 후보는 확정하지 않고 다른 후보를 계속 점검한다.
@@ -234,7 +246,7 @@ Reuters, AP, BBC, NYT, The Guardian, Politico(EU), The Verge, Ars Technica, USA 
 | 조사 진단 | 시장별 여섯 신호 탐색의 검색어·기간·결과·오류, 발견한 모든 후보의 식별자·단계별 기록·최종 상태·대표/추가 사유·조사 순서·미수행 항목, 상태별/단계별/대표 사유별 집계·시장 상태, 관찰 후보 추가 검증 대상·결과·채택 이유 |
 | 기업별 근거 | 시장·종목코드/티커·회사명·순서·시세 조회 결과·사용한 종가의 날짜와 출처·목표가의 값/미확인 상태·증권사·리포트 날짜·기사 URL·`levels()` 결과 |
 | 진입가 근거 | 가격 규칙 버전 `value-entry-v1`, 모든 적용 가능한 PER/PBR 입력과 기사 발행일/URL·주체·대상 기간·통화/주당 단위, 각 기준가치·보수 기준가치·목표가 상한 반영 여부·안전마진·매수상한·최종 진입가·상태 |
-| 필수 선정 검증 | 가치·실적 지표 조회 결과 전체, 저평가 비교 지표·대상·기간·기준일·원값/보정값·할인 이유·기사 발행일/URL·등급, 실적/현금흐름의 대상 기간·실제 수치·일회성/자금조달 점검·등급, `trend` 전체 결과, 네 묶음 위험 검색과 판정, 신호 점수·선정 순위 |
+| 필수 선정 검증 | 신호 조회와 가치·실적 지표 조회 결과 전체, 저평가 비교 지표·대상·기간·기준일·원값/보정값·할인 이유·기사 발행일/URL·등급, 실적/현금흐름의 대상 기간·실제 수치·일회성/자금조달 점검·등급, `trend` 전체 결과, 네 묶음 위험 검색과 판정, 신호 점수·선정 순위 |
 | 게시 내용 | 한국·미국 답글 원문(분할 순서 포함)·실행 정보에 사용할 확정 진단·메시지별 게시 여부와 `ts`·시도 횟수·전송 오류 |
 
 - 부모 전송이 확인되면 `parent_ts`를, 답글 전송이 확인되면 해당 게시 결과를 갱신한다. 재실행의 위험 점검은 별도로 수행하며, 저장된 답글을 검토 없이 재전송하지 않는다.
@@ -722,6 +734,215 @@ for arg in sys.argv[2:]:
 EOF
 ```
 
+## 신호 조회
+
+긍정 신호의 날짜·종류를 정형 데이터로 확인한다. 한국 DART 조회는 실행 환경의 `DART_API_KEY`가 필요하며, 키 값은 기록·출력·메시지에 남기지 않는다. 환경변수가 없고 작업 폴더에 `.env`(Git 제외, 형식은 `.env.example`)가 있으면 `set -a; . ./.env; set +a`로 불러온 뒤 실행한다. 키가 없거나 DART가 실패하면 `errors`에 남고 기사 검색으로 보충한다. 시세 조회와 같은 인터프리터를 쓴다.
+
+- 시장 탐색: `--discover-kr` 하나만 넘기면 신호 기간의 유가증권(`Y`)·코스닥(`K`) 주요사항·거래소 공시 중 자사주·배당·공급계약 분류를 종목별로 모은다. 페이지 한도로 일부만 조회하면 `errors`에 남긴다.
+- 후보 조회: `KR:종목코드` / `US:티커`를 넘기면 종목마다 JSON 한 줄을 출력한다.
+  - 한국: `disclosures`(신호 기간 긍정 공시), `earnings_releases`(잠정실적 공시), `risk_disclosures`(30일 희석·소송·규제 공시), `research_reports`(신호 기간 네이버 리포트 목록). 각 항목에 날짜·제목·DART/네이버 링크가 있다.
+  - 미국: `target_raises`(신호 기간 상향)·`target_raise_score`, `target_cuts_30d`(30일 하향), `latest_earnings`(최근 실적 발표의 EPS 추정·실제·`beat`·`in_signal_window`).
+- 공시 분류는 제목 문구 기준이다. 해지·철회·처분 공시와 `(자회사의 주요경영사항)` 공시는 분류하지 않는다. 분류가 애매한 제목은 기사로 확인한다.
+
+```bash
+# 첫 인수는 실행 시작 시 고정한 브리핑 날짜로, 나머지는 --discover-kr 또는 실제 후보로 바꾼다.
+python3 - 2026-11-02 KR:005930 US:NVDA <<'EOF'
+import io, json, os, sys, urllib.parse, urllib.request, zipfile
+import xml.etree.ElementTree as ET
+from datetime import date, datetime, time, timedelta, timezone
+from decimal import Decimal
+from functools import lru_cache
+
+KST = timezone(timedelta(hours=9))
+today = date.fromisoformat(sys.argv[1])  # 실행 시작 시 고정한 브리핑 날짜
+cutoff = datetime.combine(today, time(7), KST)  # 브리핑 날짜 07:00 KST
+signal_start = cutoff - timedelta(days=7)
+risk_start = cutoff - timedelta(days=30)
+DART_KEY = os.environ.get("DART_API_KEY", "").strip()
+
+# 공시 제목(공백·가운뎃점 제거 후)의 포함 문구로 분류한다. 정정 공시도 같은 분류로 남기고 원 공시와 중복 가산하지 않는다.
+CATEGORIES = [
+    ("자사주", ("자기주식취득결정", "자기주식소각결정", "주식소각결정", "자기주식취득신탁계약체결결정")),
+    ("배당", ("현금현물배당결정", "현금배당결정")),
+    ("공급계약", ("단일판매공급계약체결",)),
+    ("실적", ("영업잠정실적", "매출액또는손익구조")),
+    ("희석", ("유상증자결정", "전환사채권발행결정", "신주인수권부사채권발행결정", "교환사채권발행결정")),
+    ("소송", ("소송등의제기", "소송등의판결")),
+    ("규제", ("불성실공시법인지정", "관리종목지정", "매매거래정지", "상장적격성실질심사")),
+]
+POSITIVE = {"자사주", "배당", "공급계약"}  # 잠정실적은 사건일 확인용이며 컨센서스 상회 신호가 아니다.
+RISK = {"희석", "소송", "규제"}
+
+def normalize(title):
+    return "".join(ch for ch in title if ch not in " ㆍ·・()[]")
+
+def category(title):
+    t = normalize(title)
+    # 해지·철회·처분과 자회사 공시는 해당 기업 자체의 긍정 신호가 아니다.
+    if any(k in t for k in ("해지", "철회", "처분", "자회사의주요경영사항")):
+        return None
+    return next((name for name, keys in CATEGORIES if any(k in t for k in keys)), None)
+
+def inside(day, start):
+    # 날짜만 있는 자료는 경계 날짜(시작일·브리핑 날짜)를 판단할 수 없으므로 인정하지 않는다.
+    return start.date() < day < cutoff.date()
+
+def dart(path, **params):
+    if not DART_KEY:
+        raise ValueError("DART_API_KEY 환경변수 없음")
+    url = f"https://opendart.fss.or.kr/api/{path}?" + urllib.parse.urlencode({"crtfc_key": DART_KEY, **params})
+    with urllib.request.urlopen(url, timeout=20) as response:
+        return response.read()
+
+@lru_cache(maxsize=1)
+def corp_codes():
+    with zipfile.ZipFile(io.BytesIO(dart("corpCode.xml"))) as z:
+        root = ET.fromstring(z.read(z.namelist()[0]))
+    return {(e.findtext("stock_code") or "").strip(): e.findtext("corp_code")
+            for e in root.iter("list") if (e.findtext("stock_code") or "").strip()}
+
+def dart_list(start, max_pages=10, **params):
+    items, page, truncated = [], 1, False
+    while True:
+        data = json.loads(dart("list.json", bgn_de=f"{start:%Y%m%d}", end_de=f"{cutoff:%Y%m%d}",
+                               page_no=page, page_count=100, **params))
+        if data.get("status") == "013":  # 조회된 데이터 없음
+            break
+        if data.get("status") != "000":
+            raise ValueError(f"DART {data.get('status')}: {data.get('message')}")
+        items += data.get("list", [])
+        if page >= int(data.get("total_page", 1)):
+            break
+        if page >= max_pages:
+            truncated = True
+            break
+        page += 1
+    return items, truncated
+
+def disclosure(item):
+    return {"date": datetime.strptime(item["rcept_dt"], "%Y%m%d").date().isoformat(),
+            "title": item["report_nm"].strip(), "category": category(item["report_nm"]),
+            "filer": item.get("flr_nm"),
+            "url": f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={item['rcept_no']}"}
+
+def naver_researches(code):
+    req = urllib.request.Request(f"https://m.stock.naver.com/api/stock/{code}/integration",
+                                 headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=10) as response:
+        data = json.load(response)
+    rows = []
+    for r in data.get("researches") or []:
+        d = datetime.strptime(r["wdt"], "%Y%m%d").date()
+        if inside(d, signal_start):
+            rows.append({"date": d.isoformat(), "broker": r.get("bnm"), "title": r.get("tit"),
+                         "url": f"https://finance.naver.com/research/company_read.naver?nid={r['id']}"})
+    return rows
+
+def kr(code):
+    out = {"source": "DART OpenAPI · 네이버 금융", "errors": []}
+    try:
+        corp = corp_codes().get(code)
+        if not corp:
+            raise ValueError("DART 고유번호 없음")
+        items, truncated = dart_list(risk_start, corp_code=corp)
+        rows = [disclosure(i) for i in items]
+        out["disclosures"] = [r for r in rows if r["category"] in POSITIVE
+                              and inside(date.fromisoformat(r["date"]), signal_start)]
+        out["earnings_releases"] = [r for r in rows if r["category"] == "실적"
+                                    and inside(date.fromisoformat(r["date"]), signal_start)]
+        out["risk_disclosures"] = [r for r in rows if r["category"] in RISK]
+        if truncated:
+            out["errors"].append("DART 공시 목록 일부만 조회")
+    except Exception as e:
+        out["disclosures"] = out["earnings_releases"] = out["risk_disclosures"] = None
+        out["errors"].append(f"DART: {type(e).__name__}: {e}"[:200])
+    try:
+        out["research_reports"] = naver_researches(code)
+    except Exception as e:
+        out["research_reports"] = None
+        out["errors"].append(f"네이버 리포트: {type(e).__name__}: {e}"[:200])
+    return out
+
+def us(code):
+    import yfinance as yf
+    t = yf.Ticker(code.replace(".", "-"))
+    out = {"source": "Yahoo Finance", "errors": []}
+    try:
+        changes, cuts = [], []
+        for ts, r in t.upgrades_downgrades.iterrows():
+            when = ts.to_pydatetime()
+            when = (when.replace(tzinfo=timezone.utc) if when.tzinfo is None else when).astimezone(KST)
+            if not risk_start < when <= cutoff:
+                continue
+            prior, current = Decimal(str(r["priorPriceTarget"] or 0)), Decimal(str(r["currentPriceTarget"] or 0))
+            row = {"at": when.isoformat(timespec="minutes"), "firm": r["Firm"], "action": r["Action"],
+                   "from_grade": r["FromGrade"], "to_grade": r["ToGrade"],
+                   "prior_target": str(prior) if prior > 0 else None,
+                   "current_target": str(current) if current > 0 else None}
+            raised = r["Action"] == "up" or (r["Action"] != "init" and prior > 0 and current > prior)
+            lowered = r["Action"] == "down" or (prior > 0 and 0 < current < prior)
+            if raised and when > signal_start:
+                changes.append(row)
+            if lowered:
+                cuts.append(row)
+        out["target_raises"] = changes
+        out["target_cuts_30d"] = cuts
+        firms = {c["firm"] for c in changes}
+        out["target_raise_score"] = 2 if len(firms) >= 2 else len(firms)
+    except Exception as e:
+        out["target_raises"] = out["target_cuts_30d"] = None
+        out["errors"].append(f"투자의견: {type(e).__name__}: {e}"[:200])
+    try:
+        latest = None
+        for ts, r in t.get_earnings_dates(limit=8).iterrows():
+            when = ts.to_pydatetime().astimezone(KST)
+            est, rep = r.get("EPS Estimate"), r.get("Reported EPS")
+            if when <= cutoff and est == est and rep == rep and est is not None and rep is not None:
+                latest = {"at": when.isoformat(timespec="minutes"), "eps_estimate": str(est),
+                          "eps_reported": str(rep), "surprise_pct": str(r.get("Surprise(%)")),
+                          "basis": "Yahoo 제공 EPS(추정·실제 동일 제공사 기준)",
+                          "in_signal_window": when > signal_start,
+                          "beat": Decimal(str(rep)) > Decimal(str(est))}
+                break
+        out["latest_earnings"] = latest
+    except Exception as e:
+        out["latest_earnings"] = None
+        out["errors"].append(f"실적 발표: {type(e).__name__}: {e}"[:200])
+    return out
+
+def discover_kr():
+    # 시장 탐색: 신호 기간의 유가증권·코스닥 공시에서 긍정 신호 분류만 모은다.
+    found, errors = {}, []
+    for corp_cls in ("Y", "K"):
+        for kind in ("B", "I"):  # 주요사항보고, 거래소 공시
+            try:
+                items, truncated = dart_list(signal_start, max_pages=20, corp_cls=corp_cls, pblntf_ty=kind)
+                if truncated:
+                    errors.append(f"{corp_cls}/{kind}: 20페이지까지만 조회")
+                for i in items:
+                    row = disclosure(i)
+                    if row["category"] in POSITIVE and inside(date.fromisoformat(row["date"]), signal_start):
+                        found.setdefault(i["stock_code"], {"code": i["stock_code"], "name": i["corp_name"],
+                                                           "market": corp_cls, "disclosures": []})["disclosures"].append(row)
+            except Exception as e:
+                errors.append(f"{corp_cls}/{kind}: {type(e).__name__}: {e}"[:200])
+    return {"mode": "discover", "window": [signal_start.isoformat(), cutoff.isoformat()],
+            "candidates": sorted(found.values(), key=lambda c: c["code"]), "errors": errors}
+
+if sys.argv[2:] == ["--discover-kr"]:
+    print(json.dumps(discover_kr(), ensure_ascii=False))
+else:
+    for arg in sys.argv[2:]:
+        market, code = arg.split(":", 1)
+        base = {"market": market, "code": code, "signal_window": [signal_start.isoformat(), cutoff.isoformat()]}
+        try:
+            result = kr(code) if market == "KR" else us(code)
+        except Exception as e:
+            result = {"error": f"{type(e).__name__}: {e}"[:200]}
+        print(json.dumps({**base, **result}, ensure_ascii=False))
+EOF
+```
+
 ## 가치·실적 지표 조회
 
 시세 조회를 통과한 후보를 한 번에 넘긴다. 인수는 `KR:종목코드=종가@종가기준일` / `US:티커=종가@종가기준일`이며, 종가·기준일은 시세 조회의 `close`·`date`를 그대로 쓴다. 종목마다 JSON 한 줄을 출력한다. 시세 조회와 같은 인터프리터를 쓴다.
@@ -1052,7 +1273,7 @@ EOF
 
 1. **기준 설정**: 실제 시작 시각·실행 ID·작업 환경·지침 해시를 기록하고 브리핑 날짜와 신호 기간 7일·근거 30일·중복 확인 최근 7일의 기간을 고정한다. 추세 표본은 별도로 직전 거래일까지의 80거래일이다. 현재 세션 정보는 확인한 경우만 저장한다.
 2. **채널·실행 상태 확인**: ID `C0CDFHG8PL7`로 읽고, 실패하면 `slack_search_channels`로 찾는다. 페이지가 나뉘면 최근 7일의 부모를 모두 확인할 때까지 읽어 중복 목록을 만든다. 오늘 게시물이 이미 완성됐으면 종료한다. 작업이 필요하면 상태 경로의 쓰기·보존 상태와 잠금을 확인한 뒤 채널을 다시 읽는다. 오늘 부모가 있으면 원래 스냅샷을 보존하고 재실행 규칙으로 누락분만 처리한다.
-3. **탐색·빠른 확인**: 시장별 여섯 신호를 검색하고 발견 후보 목록을 저장한다. 조사 순서·한도를 적용해 중복·신호 날짜와 근거를 확인하고, 시세·급등·추세를 조회한 뒤 통과 후보에 **가치·실적 지표 조회**를 한 번에 실행한다. 확정된 제외·보류는 기록하고 후속 단계는 건너뛴다.
+3. **탐색·빠른 확인**: 시장별 여섯 신호를 검색하고 발견 후보 목록을 저장한다. 조사 순서·한도를 적용해 후보에 **신호 조회**를 한 번에 실행하고 중복·신호 날짜와 근거를 확인하고, 시세·급등·추세를 조회한 뒤 통과 후보에 **가치·실적 지표 조회**를 한 번에 실행한다. 확정된 제외·보류는 기록하고 후속 단계는 건너뛴다.
 4. **상세 검증·확정**: 남은 후보의 저평가·실적 지속성을 검증하고 네 묶음 위험 검색과 목표가 확인을 마친다. 종가와 평가 기준일·단위·기간을 맞춘 모든 적용 가능한 PER/PBR 근거를 `evidence`와 함께 `levels()`에 전달한다. 산출 불가 후보는 보류한다. 조사 대상의 판정을 마친 뒤 적격 기업만 정해진 순서로 비교하며, 선정 수를 채워도 남은 조사 대상은 판정하거나 미조사로 명시한다. 선정 0개 시장은 **관찰 후보** 절차를 수행한다.
 5. **작성·검증**: 시장별 최종 상태·단계·사유를 집계하고 부모와 기업 답글을 작성한다. 아래 점검을 통과한 스냅샷을 원자적으로 저장·다시 읽어 확인한다. 0개 선정도 동일하다.
 6. **직접 게시**: 전송 직전에 오늘 부모를 다시 확인한다. 다른 실행이 게시했다면 새 부모를 보내지 않고 그 부모와 일치하는 원래 상태만 복원한다. 없으면 `slack_send_message`로 부모를 보내고 응답의 `ts`를 `thread_ts`로 써서 한국·미국 순으로 답글을 보낸다. 성공 시각·`ts`·시도 횟수를 즉시 저장한다. 초안 도구는 쓰지 않으며 `reply_broadcast`·`unfurl_app_links`는 설정하지 않는다.
