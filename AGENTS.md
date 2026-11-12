@@ -2,7 +2,7 @@
 
 매일 오전 7시(KST)에 Claude Code 루틴이 읽는 유일한 실행 지시서다.
 한국·미국 상장 기업을 각각 최대 2개 골라 Slack `#daily-stock-brief`(ID `C0CDFHG8PL7`)에 부모 메시지와 스레드로 바로 게시한다. 사람의 검토 없이 실행하며 투자 권유가 아니다.
-최근 호재가 있고, 기사로 정량적인 저평가 근거와 실적 지속성을 확인했으며, 시세로 하락 추세 완화 조건을 통과한 기업만 고른다. 진입가는 기사에서 확인한 주당 실적·자산과 비교배수로 산출한 매수상한에 제한한다. 공시 원문·재무제표를 직접 분석하거나 미래 실적·자산을 자체 추정하지 않는다. 저평가 근거와 진입가는 상대가치에 기초한 참고값이며 수익이나 가격 하한을 보장하지 않는다.
+최근 호재가 있고, 데이터 제공사 지표(보조로 기사)로 정량적인 저평가 근거와 실적 지속성을 확인했으며, 시세로 하락 추세 완화 조건을 통과한 기업만 고른다. 진입가는 제공사·기사에서 확인한 주당 실적·자산과 비교배수로 산출한 매수상한에 제한한다. 공시 원문·재무제표를 직접 분석하거나 미래 실적·자산을 자체 추정하지 않는다. 저평가 근거와 진입가는 상대가치에 기초한 참고값이며 수익이나 가격 하한을 보장하지 않는다.
 
 > `CLAUDE.md`와 `README.md`는 이 파일의 심볼릭 링크다. 지침은 `AGENTS.md`만 수정한다.
 
@@ -38,8 +38,8 @@
 ## 소스와 조회 원칙
 
 - 기사·공시는 직접 열지 않고 **WebSearch의 제목·URL·요약**으로 확인한다. DART·EDGAR 공시는 보도 기사로 확인한다. 검색 요약에 없는 본문을 읽은 것처럼 기록하거나 숫자·기간을 보완하지 않는다.
-- EPS/BPS·실제 이익·현금흐름·FFO/AFFO·규제자본 수치가 기사 검색에서 부족하면 **회사 공식 실적 발표문·IR 보도자료의 검색 결과**를 보조 근거로 허용한다. 명시된 수치와 정의를 옮기는 범위이며 공시 원문·재무제표를 열거나 직접 분석하지 않는다. 발행일·대상 기간·기준·원문 URL을 확인하고 같은 30일 제한을 적용한다. 아래의 해당 수치에 관한 `기사 근거`에는 이 보조 근거도 포함한다. 동종·과거 배수 비교, 목표주가와 위험 판정은 계속 보도 기사로 확인한다.
-- 종가·일간 등락률·시가총액·추세 지표는 아래 **시세 조회** 스크립트를 쓴다. 그 밖의 시장 수치와 PER·PBR 등은 기사에 나온 것만 쓴다. 아래에 명시한 PER·PBR의 가격 보정·상대 할인율·가치기준 진입가 계산만 허용하며, 이익·자산·미래 매출을 자체 추정하지 않는다.
+- 지표 스크립트가 제공하지 않는 EPS/BPS·실제 이익·현금흐름·FFO/AFFO·규제자본 수치가 기사 검색에서 부족하면 **회사 공식 실적 발표문·IR 보도자료의 검색 결과**를 보조 근거로 허용한다. 명시된 수치와 정의를 옮기는 범위이며 공시 원문·재무제표를 열거나 직접 분석하지 않는다. 발행일·대상 기간·기준·원문 URL을 확인하고 같은 30일 제한을 적용한다. 아래의 해당 수치에 관한 `기사 근거`에는 이 보조 근거도 포함한다. 동종·과거 배수 비교, 목표주가와 위험 판정은 계속 보도 기사로 확인한다.
+- 종가·일간 등락률·시가총액·추세 지표는 아래 **시세 조회** 스크립트를 쓴다. EPS·BPS·동종/자사 과거 PER·PBR·분기 영업이익·영업현금흐름은 아래 **가치·실적 지표 조회** 스크립트의 제공사 표시값(한국 네이버 금융, 미국·분기 실적 Yahoo Finance)을 우선 쓴다. 기사 검색은 신호·할인 이유·위험 판정과 제공값이 없는 비교의 보충에 쓴다. 제공값은 옮겨 쓰는 것이며, 허용하는 계산은 `직전 종가 ÷ 제공 EPS·BPS`, 비교값의 중앙값, 상대 할인율, 가치기준 진입가뿐이다. 이익·자산·미래 매출을 자체 추정하거나 재무제표 항목을 조합해 새 지표를 만들지 않는다.
 - 링크는 검색 결과에서 확인한 원문 URL만 쓰고 `utm_*` 등 추적 파라미터를 제거한다. Google News 리다이렉트 URL은 쓰지 않는다.
 - 기업별 긍정 신호 대표 링크는 가장 신뢰도 높은 원문 하나를 쓴다. 별도 위험 점검 기사 내용을 본문에 인용하면 발행일과 근거 링크도 붙인다.
 - `#daily-news-brief`는 읽지 않으며, 그 채널과의 기업 중복은 제한하지 않는다.
@@ -102,48 +102,56 @@ Reuters, AP, BBC, NYT, The Guardian, Politico(EU), The Verge, Ars Technica, USA 
 
 ### 저평가 근거 — 필수
 
-후보마다 `회사명 밸류에이션 동종업계 PER PBR` / `티커 valuation peers historical multiple`로 추가 검색한다. 최근 30일 기사에서 아래 조건을 모두 확인해야 한다.
+후보마다 아래 **가치·실적 지표 조회** 스크립트를 실행해 `valuation.comparisons`를 받는다. 자사 배수는 직전 거래일 종가를 제공 EPS·BPS(실제 최근 4분기 합산 또는 최근 분기)로 나눈 값이고, 비교 기준은 제공사가 보여주는 값의 중앙값이다.
 
-1. **정량 비교**: 해당 기업의 평가배수와 유사 기업·업종 또는 자사 과거 정상 범위의 비교 수치가 모두 있다. 기업 값과 비교 값은 모두 유한한 양수여야 한다. PER·EV/EBITDA·PBR은 비교 기준보다 낮아야 하며, FCF 수익률은 비교 기준보다 높아야 한다. 단순한 `저평가` 표현·목표가 괴리·고점 대비 하락률은 인정하지 않는다.
-2. **비교 가능성**: 지표 정의, 실제/예상 구분, 대상 결산기 또는 예상 기간, GAAP/조정 기준, 평가 기준일을 확인한다. 비교 대상의 사업·성장률·수익성·부채 차이가 할인 이유가 될 수 있는지 기사 설명으로 점검한다. 시장 전체 평균, 다른 업종, 서로 다른 회계 기준을 임의로 비교하지 않는다. 과거 범위는 산정 기간과 대표값을 확인하며 고평가 시기 최고치만 골라 쓰지 않는다.
-3. **현재 종가와의 정합성**: 배수가 직전 거래일 종가 기준인지 확인한다. 과거 기준 PER·PBR은 기사에 기준주가와 EPS·BPS 또는 해당 배수가 있고, 이후 실적·추정치·주식 수 변경이 없음을 확인한 경우에만 `기사 배수 × 직전 종가 ÷ 기사 기준주가`로 보정한다. 이 전제는 출처·확인 기간·확인 방법을 저장하며, 변경 기사를 찾지 못했다는 이유만으로 성립한다고 보지 않는다. 원래 값·보정값·전제를 모두 기록한다. EV/EBITDA·FCF 수익률은 주가에 단순 비례시켜 보정하지 않는다. 기준일 정합성을 확인하지 못하면 보류한다.
-4. **할인 이유 점검**: 일회성 이익, 경기 고점의 이익, 자산 부실, 낮은 ROE, 과도한 부채나 사업 악화로 낮아 보이는 경우를 검색한다. 그 영향을 반영한 정상 이익·자산 기준의 비교를 확인하지 못하면 보류한다. PBR은 ROE와 자산 건전성 근거를 함께 확인한다. 적자 기업의 음수 PER·EV/EBITDA는 저평가 근거로 사용하지 않는다.
+| 비교 | 한국 | 미국 | 최소 표본 |
+|---|---|---|---|
+| 동종 PER·PBR | 네이버 동일업종 비교 종목의 PER·PBR | Yahoo 업종 상위 기업(최대 8개)의 trailing PER·PBR | 양수 3개 |
+| 자사 과거 PER | 네이버 최근 3개 실제 회계연도 PER | 제공값 없음 — 기사로만 보충 | 양수 3개 |
 
-비교·보정·할인율은 Python `Decimal`로 계산하고 반올림 전 값으로 판정한다. 낮을수록 저렴한 배수의 상대 할인율은 `1 − 기업 배수 ÷ 비교 배수`다. 서로 다른 업종·지표의 할인율 크기로 순위를 매기지 않는다. 모든 기업에 `PER 10배 이하`·`PBR 1배 이하` 같은 공통 절대 기준을 적용하지 않는다.
+1. **주 지표 선택**: 일반 기업은 PER 비교를, 금융·보험은 PBR 비교와 PER 비교를 함께 쓴다. 일반 기업의 PBR 비교는 참고로만 기록한다. EPS가 음수이거나 없는 기업은 PER 저평가 근거가 없다.
+2. **판정**: 주 지표로 확인한 비교(`passed`가 `true`/`false`)가 모두 `true`여야 한다. 하나라도 `false`면 저평가 미충족으로 **제외**한다. 표본 부족(`passed: null`)은 미확인으로 남기며 통과로 보지 않는다.
+3. **비교 가능성 점검**: 동종 목록은 제공사 분류라 사업 구성이 다를 수 있다. 스크립트는 할인율 50% 이상인 비교를 `passed: null`(비교 가능성 미확인)로 돌린다. 그 밖에도 동종 종목명과 각 배수를 보고 사업이 명백히 다른 종목(지주사·적자 회복기 등)이 중앙값을 좌우하면 해당 비교를 미확인으로 돌린다. 임의로 일부 종목만 빼서 다시 계산하거나 50% 기준을 바꾸지 않는다.
+4. **할인 이유 점검**: `회사명 일회성 이익 OR 처분이익 OR 평가이익` / `티커 one-time gain OR impairment OR restructuring`으로 30일 기사를 검색한다. 최근 4분기 EPS가 일회성 이익으로 부풀었다는 기사가 있으면 PER 비교를 미확인으로 돌리고, 정상 이익 기준의 기사 비교가 없으면 **보류**한다. PBR을 쓰면 최근 회계연도 ROE 양수(한국 `history.roe`, 미국 `roe`)와 자산 부실 기사 미발견을 확인한다.
+5. **기사 비교 보충(선택)**: 스크립트로 확인하지 못한 비교(미국 자사 과거 PER 등)는 `회사명 밸류에이션 동종업계 PER PBR` / `티커 valuation peers historical multiple`로 30일 기사에서 보충할 수 있다. 이때는 지표 정의·실제/예상·대상 기간·회계 기준·평가 기준일을 확인하고, 직전 종가 기준이 아니면 기준주가와 EPS·BPS가 함께 있고 이후 실적·주식 수 변경이 없음을 확인한 경우에만 `기사 배수 × 직전 종가 ÷ 기사 기준주가`로 보정한다. 원래 값·보정값·전제를 기록한다. 단순한 `저평가` 표현·목표가 괴리·고점 대비 하락률은 인정하지 않는다.
 
-- **저평가 근거 등급 2**: 유사 기업 비교와 자사 과거 정상 범위 비교를 각각 확인하고 위 조건을 모두 통과했다.
-- **저평가 근거 등급 1**: 두 비교 중 하나를 확인하고 위 조건을 모두 통과했다.
-- **보류**: 둘 다 미확인이거나 비교 가능성·종가 정합성·할인 이유 점검이 미완료다. 검색 요약에 없던 수치를 만들어 채우지 않는다.
+비교·할인율은 Python `Decimal`로 계산하고 반올림 전 값으로 판정한다. 상대 할인율은 `1 − 자사 배수 ÷ 비교 배수`다. 서로 다른 업종·지표의 할인율 크기로 순위를 매기지 않으며, 모든 기업에 `PER 10배 이하` 같은 공통 절대 기준을 적용하지 않는다.
+
+- **저평가 근거 등급 2**: 동종 비교와 자사 과거 비교를 모두 확인해 통과했다.
+- **저평가 근거 등급 1**: 둘 중 하나만 확인해 통과했다(미국은 기사 보충이 없으면 최대 1).
+- **보류**: 주 지표 비교를 하나도 확인하지 못했거나 할인 이유 점검이 미완료다. 스크립트 `error`는 조회 오류 보류다.
 
 ### 가치기준 진입가 — 필수
 
-저평가 근거를 통과한 비교 중 **PER 또는 PBR**로 주당 기준가치를 계산할 수 있어야 한다. 수행한 검색에서 확인한 모든 적용 가능한 비교를 수집하고 검색 범위·미확인 항목을 저장한다. 검색하지 않은 모든 자료까지 확인했다고 쓰거나, 확인한 비교 중 가장 높은 배수나 가격만 골라 쓰지 않는다.
+저평가 판정에 쓴 주 지표 비교마다 **PER 또는 PBR**로 주당 기준가치를 계산한다. 스크립트가 통과 비교마다 출력하는 `valuation_basis`(EPS/BPS·비교 중앙값·`evidence`)를 그대로 `levels()`에 넘긴다. 기사로 보충한 비교도 같은 구조로 넣는다. 확인한 비교 중 일부만 골라 넣지 않는다.
 
-| 방식 | 필요한 기사 수치 | 주당 기준가치 |
+| 방식 | 입력 | 주당 기준가치 |
 |---|---|---|
-| PER | 해당 기업의 정상화된 또는 비교 가능한 EPS, 유사 기업/자사 과거 정상 PER | `EPS × 비교 PER` |
-| PBR | 해당 기업의 BPS, 유사 기업/자사 과거 정상 PBR, ROE·자산 건전성 근거 | `BPS × 비교 PBR` |
+| PER | 제공 EPS(실제 최근 4분기 합산) 또는 기사 EPS, 동종/자사 과거 PER 중앙값 | `EPS × 비교 PER` |
+| PBR | 제공 BPS 또는 기사 BPS, 동종 PBR 중앙값, ROE·자산 건전성 근거 | `BPS × 비교 PBR` |
 
-- EPS·BPS는 기사에 명시된 값만 쓰며 주가·배수·목표가에서 역산하지 않는다. 예상/실제·결산기·GAAP/조정·통화·보통주/ADR 단위·분할 반영 여부가 비교 근거와 맞아야 한다. 일회성 이익이나 경기 고점 이익을 정상 이익으로 가정하지 않는다.
+- EPS·BPS는 제공사·기사에 표시된 값만 쓰며 주가·배수·목표가에서 역산하지 않는다. 실제/예상·대상 기간·통화·보통주/ADR 단위가 비교 기준과 맞아야 한다. 연간/TTM 배수에 분기 EPS를 곱하지 않는다. 추정 EPS(`cnsEps`)는 진입가에 쓰지 않는다.
 - 비교배수가 범위로 제시되면 하단을 사용한다. 적용 가능한 여러 기준가치를 모두 계산하고 최솟값을 채택한다. 최근 리포트의 목표가도 확인했다면 그 값과 비교해 더 낮은 값을 **보수 기준가치**로 쓴다. 목표가만으로 기준가치를 만들거나 여러 목표가의 최댓값을 고르지 않는다.
 - **가치기준 매수상한 = 보수 기준가치 × 0.80**이다. 20%는 이 루틴의 고정 안전마진으로 수익성이 검증된 최적값이나 손실 방지 장치가 아니다. 근거의 질이 부족한 기업을 마진만 늘려 통과시키지 않는다.
 - **최종 진입가 = min(가치기준 매수상한, 직전 거래일 종가)**다. 매수상한과 최종 진입가는 한국 호가 단위·미국 1센트 단위로 각각 내림한다. 가치상한이 높아도 직전 종가보다 높은 가격을 진입가로 제시하지 않는다.
 - 종가가 매수상한 이하이면 `가격조건 충족`, 초과하면 `진입대기`로 표시한다. 이는 브리핑 기준 상태이며 실시간 매수 신호가 아니다. 대기 기업도 다른 필수 조건을 모두 통과해야 하며, 진입가 도달 전후 실적·주식 수·추정치·위험·추세 근거가 바뀌면 기존 가격은 폐기한다.
-- EV/EBITDA·FCF 수익률만 확인했거나 EPS·BPS/비교배수·통화·기간 등의 근거가 부족하면 **진입가 산출 불가로 보류**한다. 목표가에 일정 할인율을 적용하거나 종가·차트 값으로 대신하지 않는다.
-- 기사 발행일·URL·증권사/분석 주체·실적 대상 기간·EPS/BPS·비교배수·단위·각 기준가치·채택 근거·안전마진·매수상한·최종 진입가·상태를 저장한다. 아래 `levels()`에 확인한 근거를 전달해 계산한다.
+- EPS·BPS 또는 비교배수가 없으면 **진입가 산출 불가로 보류**한다. 목표가에 일정 할인율을 적용하거나 종가·차트 값으로 대신하지 않는다.
+- 스크립트 결과 전체(동종 목록·각 배수·조회 시각·URL)와 채택한 기준가치·안전마진·매수상한·최종 진입가·상태를 저장한다.
 
 ### 실적 지속성 — 필수
 
-최근 30일 기사에 보도된 최신 발표 결산기의 **실제 이익과 현금 창출 수치**를 확인한다. 아직 실현되지 않은 계약 총액·매출 전망·목표가 상향·주주환원만으로 통과시키지 않는다.
+최신 결산기의 **실제 이익과 현금 창출 수치**를 확인한다. 아직 실현되지 않은 계약 총액·매출 전망·목표가 상향·주주환원만으로 통과시키지 않는다.
 
-- 일반 기업은 같은 대상 기간의 **영업이익 양수와 영업현금흐름 양수**를 모두 확인한다. 영업현금흐름 대신 정의가 명시된 FCF 양수를 사용할 수 있다. 최신 발표에서 독립 분기 기준 두 수치를 확인할 수 있으면 그 분기를 사용한다. 현금흐름이 누적으로만 명시됐으면 같은 최신 발표의 동일 누적 기간 이익·현금흐름을 사용하고 `현금흐름 검증: 누적`을 표시한다. 이때 최신 분기의 영업이익도 양수인지 별도로 확인하며, 누적 흑자로 최신 분기 적자나 확인된 현금흐름 악화를 덮지 않는다. 분기·누적·연간 수치를 섞거나 차감해 분기 수치를 자체 산출하지 않고, 누적 현금흐름을 분기 현금흐름으로 표현하지 않는다. 오래된 연간 흑자로 최신 발표를 대체하지 않는다. 일회성 처분이익·평가이익이나 운전자본의 일시적 회수에 의존하면 반복 가능한 수익·현금 창출 근거를 추가 확인한다.
-- 금융·보험·리츠처럼 위 지표를 그대로 비교하기 어려운 업종은 해당 업종의 이익과 건전성을 각각 확인한다. 금융·보험은 최신 결산기의 실제 순이익 양수와 적용 규제자본비율의 최소 기준 충족, 리츠는 정의가 명시된 FFO/AFFO 양수와 같은 기간·총액/주당 기준의 `FFO/AFFO ≥ 배당 지급액`을 확인한다. 필요한 수치·비교 기준을 확인하지 못하면 보류하며 일반 기업 기준을 억지로 적용하지 않는다.
-- 이익·현금흐름 또는 해당 업종의 대체 지표가 악화된 경우 원인과 일회성 여부를 확인한다. 반복 적자·지속적인 현금 유출이나 구조적인 수익성 악화를 해소할 근거가 없으면 제외한다. 원인·지속성 미확인은 보류한다.
+- 일반 기업은 **가치·실적 지표 조회**의 `sustainability`를 쓴다. Yahoo Finance 분기 재무의 최신 분기에서 **영업이익 양수와 영업현금흐름 양수**를 모두 확인해야 한다(`eligible`). 같은 출처의 4분기 전(전년 동기) 수치와 비교한 `yoy`를 함께 본다. 최신 분기가 200일보다 오래됐거나 항목이 없으면 `error`다.
+- 30일 기사(신호 확인 포함)에 제공값보다 **새로운 결산기 실적**이 보도됐으면 그 기사 수치를 우선한다. 같은 기간의 영업이익과 영업현금흐름(또는 정의가 명시된 FCF)을 모두 확인해야 하며, 회사 공식 실적 발표문 검색 결과를 보조로 쓸 수 있다. 누적으로만 명시됐으면 `현금흐름 검증: 누적`을 표시하고 최신 분기 영업이익 양수를 별도로 확인한다. 분기·누적·연간 수치를 섞거나 차감해 분기 수치를 만들지 않는다. 새 결산기의 현금흐름을 끝내 확인하지 못하면 이전 분기 제공값으로 통과시키지 않고 보류한다.
+- `eligible == false`(최신 분기 영업적자 또는 영업현금 유출)는 원인과 일회성 여부를 기사로 확인한다. 일회성이 아니거나 원인을 확인하지 못하면 제외한다.
+- 금융·보험·리츠는 분기 영업이익·영업현금흐름 항목이 없거나 의미가 다르므로 `sustainability`를 쓰지 않는다. 금융·보험은 최신 결산기의 실제 순이익 양수와 적용 규제자본비율의 최소 기준 충족, 리츠는 정의가 명시된 FFO/AFFO 양수와 같은 기간·총액/주당 기준의 `FFO/AFFO ≥ 배당 지급액`을 30일 기사·공식 발표 검색 결과로 확인한다. 확인하지 못하면 보류한다.
+- 일회성 처분이익·평가이익이나 운전자본의 일시적 회수에 의존한 흑자·현금흐름이라는 기사가 있으면 반복 가능한 수익·현금 창출 근거를 추가 확인한다.
 - 신규 데이터센터·공장 등 대규모 투자가 가치평가의 핵심이면 투자금, 확정 자금과 미확정 자금의 구분, 차입·임대료 차감·증자 등 조달 방식 및 비용을 확인한다. 핵심 자금조달이 미확정이거나 그 비용을 반영한 가치평가 근거가 없으면 보류한다. `증자 계획 없음`을 자금 확보로 해석하지 않는다.
-- **실적 지속성 등급 2**: 위 조건을 통과하고 같은 기간·기준의 전년 동기 대비 이익과 현금 창출 지표가 모두 유지·개선됐음을 수치로 확인했다. 업종 대체 지표는 이익·건전성이 모두 유지·개선돼야 한다.
-- **실적 지속성 등급 1**: 위 조건은 통과했지만 전년 동기 비교 일부가 없거나, 악화 원인과 반복 가능성 검토를 마친 경우다. 설명되지 않은 악화를 등급 1로 통과시키지 않는다.
+- **실적 지속성 등급 2**: 위 조건을 통과하고 전년 동기 대비 영업이익과 영업현금흐름이 모두 유지·개선됐다(`yoy`의 두 값 `true`). 업종 대체 지표는 이익·건전성이 모두 유지·개선돼야 한다.
+- **실적 지속성 등급 1**: 위 조건은 통과했지만 전년 동기 비교가 없거나, 악화한 항목의 원인과 반복 가능성을 기사로 확인한 경우다. `yoy` 악화의 원인을 확인하지 못하면 보류하며 등급 1로 통과시키지 않는다.
 
-기사 발행일·URL·실적 대상 기간·실제 수치·일회성 여부·판정 근거를 저장한다. 기사만으로 확인할 수 없으면 기업 수를 줄인다.
+스크립트 결과(분기별 수치·대상 기간·출처)와 보충 기사 발행일·URL·일회성 여부·판정 근거를 저장한다.
 
 ### 하락 추세 완화 — 필수
 
@@ -226,7 +234,7 @@ Reuters, AP, BBC, NYT, The Guardian, Politico(EU), The Verge, Ars Technica, USA 
 | 조사 진단 | 시장별 여섯 신호 탐색의 검색어·기간·결과·오류, 발견한 모든 후보의 식별자·단계별 기록·최종 상태·대표/추가 사유·조사 순서·미수행 항목, 상태별/단계별/대표 사유별 집계·시장 상태, 관찰 후보 추가 검증 대상·결과·채택 이유 |
 | 기업별 근거 | 시장·종목코드/티커·회사명·순서·시세 조회 결과·사용한 종가의 날짜와 출처·목표가의 값/미확인 상태·증권사·리포트 날짜·기사 URL·`levels()` 결과 |
 | 진입가 근거 | 가격 규칙 버전 `value-entry-v1`, 모든 적용 가능한 PER/PBR 입력과 기사 발행일/URL·주체·대상 기간·통화/주당 단위, 각 기준가치·보수 기준가치·목표가 상한 반영 여부·안전마진·매수상한·최종 진입가·상태 |
-| 필수 선정 검증 | 저평가 비교 지표·대상·기간·기준일·원값/보정값·할인 이유·기사 발행일/URL·등급, 실적/현금흐름의 대상 기간·실제 수치·일회성/자금조달 점검·등급, `trend` 전체 결과, 네 묶음 위험 검색과 판정, 신호 점수·선정 순위 |
+| 필수 선정 검증 | 가치·실적 지표 조회 결과 전체, 저평가 비교 지표·대상·기간·기준일·원값/보정값·할인 이유·기사 발행일/URL·등급, 실적/현금흐름의 대상 기간·실제 수치·일회성/자금조달 점검·등급, `trend` 전체 결과, 네 묶음 위험 검색과 판정, 신호 점수·선정 순위 |
 | 게시 내용 | 한국·미국 답글 원문(분할 순서 포함)·실행 정보에 사용할 확정 진단·메시지별 게시 여부와 `ts`·시도 횟수·전송 오류 |
 
 - 부모 전송이 확인되면 `parent_ts`를, 답글 전송이 확인되면 해당 게시 결과를 갱신한다. 재실행의 위험 점검은 별도로 수행하며, 저장된 답글을 검토 없이 재전송하지 않는다.
@@ -297,7 +305,7 @@ _회사 설명 1줄 · 시가총액 12.3조 원 (네이버, 11/2 07:02 KST 조�
 📊 추세: 수정종가 ≥ 60일 평균 · 60일 평균 ≥ 20거래일 전 평균 (Yahoo Finance, 10/30 기준)
 💵 가격 (10/30 종가 71,200원, 네이버 · 기간 11/30까지)
 • 목표주가 90,000원 (A증권, 10/30 상향 · 상승여력 26%)
-• 가치기준 매수상한 64,000원 (2027년 예상 EPS 8,000원 × 비교 PER 10배 = 80,000원 · 안전마진 20% · A증권 10/30)
+• 가치기준 매수상한 64,000원 (최근 4분기 EPS 8,000원 × 동종 PER 중앙값 10배 = 80,000원 · 안전마진 20% · [네이버 금융](https://finance.naver.com/item/main.naver?code=005930) 11/2 조회)
 • 수익실현 74,200원 (+16%)
 • 진입 64,000원 이하 (진입대기)
 • 손절 58,900원 (−8%)
@@ -310,7 +318,7 @@ _회사 설명 1줄 · 시가총액 12.3조 원 (네이버, 11/2 07:02 KST 조�
 - **설명 1줄**: 무엇을 만들거나 파는 회사인지 한 문장 뒤에 `market_cap.display`를 붙인다. 시가총액은 한국 원화·미국 달러이며 조·억·만 단위로 소수 첫째 자리까지 반올림하고 `.0`을 생략한다. 출처·KST 조회 시각은 종가 기준일이나 데이터 갱신 시각으로 해석하지 않는다. 실패 시 기사·주식 수 계산으로 보충하지 않는다.
 - **투자 포인트는 정확히 3줄**, 각 한 문장으로 쓴다.
   1. **사건**: 인정된 신호의 사건일·수치. 실적은 지표·기간·실제치·컨센서스, 가이던스는 기존·새 값, 자사주는 결정·이행 구분을 밝힌다.
-  2. **저평가·실적 지속성**: 비교 가능한 평가배수와 기준 수치, 실적·현금 창출의 실제 근거를 한 문장으로 쓴다. 지표·대상 기간을 밝히고 과거 배수 보정 시 보정값임을 표시한다. 이 근거의 기사 발행일·링크를 붙이며 목표가 괴리만으로 저평가라고 쓰지 않는다.
+  2. **저평가·실적 지속성**: 비교 가능한 평가배수와 기준 수치, 실적·현금 창출의 실제 근거를 한 문장으로 쓴다. 지표·대상 기간을 밝히고 과거 배수 보정 시 보정값임을 표시한다. 제공값이면 `[네이버 금융](urls.display)`·`[Yahoo Finance](urls.display)` 링크와 조회일을, 기사면 발행일·링크를 붙이며 목표가 괴리만으로 저평가라고 쓰지 않는다. 동종 비교는 `동종 n개 중앙값`처럼 표본 수를 밝힌다.
   3. **리스크·다음 확인**: 기사에 나온 약점·반론·일회성 요인을 우선한다. 없으면 무엇이 확인될 때 판단이 달라지는지 조건으로 쓴다. 확인 일정은 기사에 있는 것만 쓴다. 제외 사유가 있는 기업을 이 줄로 설명해 통과시키지 않는다.
 - **추세 확인 줄**: 포인트 3줄 아래에 위 예시처럼 `trend`의 두 조건·출처·기준일을 표시한다. 수정주가 계열의 통과 사실이며 향후 상승을 예측하지 않는다. 분할 시 이 줄과 가격 블록을 해당 기업 항목에 함께 둔다.
 
@@ -319,7 +327,7 @@ _회사 설명 1줄 · 시가총액 12.3조 원 (네이버, 11/2 07:02 KST 조�
 분석 기업마다 설명·포인트 아래에 작성한다. 차트·지지선·저항선으로 공식을 바꾸지 않는다.
 
 제목은 `💵 가격 (기준일 종가 금액, 출처 · 기간 M/D까지)`다.
-기준일·출처·종가 금액은 시세의 `date`·`source`·`close`다. 종가와 진입가를 구분한다. 가치기준 매수상한 줄에는 채택한 EPS/BPS·비교배수·대상 기간·주체·리포트 날짜·기사 링크와 안전마진을 붙인다. 여러 방식의 최솟값이면 그 사실을 적고 전체 산식은 실행 기록에 남긴다. 기간은 브리핑 날짜 + 28일이며, 그 이후에는 이 참고값을 사용하지 않는다는 기준이다.
+기준일·출처·종가 금액은 시세의 `date`·`source`·`close`다. 종가와 진입가를 구분한다. 가치기준 매수상한 줄에는 채택한 EPS/BPS·비교배수(동종/자사 과거 중앙값)·대상 기간·출처 링크와 조회일 또는 기사 발행일, 안전마진을 붙인다. 여러 방식의 최솟값이면 그 사실을 적고 전체 산식은 실행 기록에 남긴다. 기간은 브리핑 날짜 + 28일이며, 그 이후에는 이 참고값을 사용하지 않는다는 기준이다.
 
 가격 줄은 다음 순서를 유지한다. 한국은 원, 미국은 달러(`$182.40`)로 쓴다.
 
@@ -714,6 +722,248 @@ for arg in sys.argv[2:]:
 EOF
 ```
 
+## 가치·실적 지표 조회
+
+시세 조회를 통과한 후보를 한 번에 넘긴다. 인수는 `KR:종목코드=종가@종가기준일` / `US:티커=종가@종가기준일`이며, 종가·기준일은 시세 조회의 `close`·`date`를 그대로 쓴다. 종목마다 JSON 한 줄을 출력한다. 시세 조회와 같은 인터프리터를 쓴다.
+
+- `eps`·`bps`: 제공사 표시값과 기준 기간. 한국은 네이버의 최근 4분기 합산 EPS·최근 분기 BPS, 미국은 Yahoo `trailingEps`·`bookValue`다. 한국 `cnsEps`는 참고용 추정치이며 진입가에 쓰지 않는다.
+- `peers`·`history`: 동종 종목별 PER·PBR, 한국 최근 3개 실제 회계연도의 PER·ROE.
+- `valuation.comparisons`: 비교별 자사 배수·표본 수·중앙값·할인율·`passed`, 통과 비교의 `valuation_basis`(`levels()` 입력).
+- `quarters`·`sustainability`: Yahoo 분기 영업이익·영업현금흐름·FCF(최근 5분기)와 최신 분기 양수·전년 동기 유지 판정·등급.
+- 오류는 최상위 `error`(조회 자체 실패), `errors`(동종·연간·분기 일부 실패), `sustainability.error`로 남긴다. 일부 실패는 해당 비교만 미확인으로 처리한다. 제공값은 조회 시점 값이며 종가 기준일과 시차가 있을 수 있으므로 조회 시각을 함께 저장한다.
+
+```bash
+# 첫 인수는 실행 시작 시 고정한 브리핑 날짜로, 나머지는 실제 후보와 시세 조회 결과로 바꾼다.
+python3 - 2026-11-02 KR:005930=71200@2026-10-30 US:NVDA=182.4@2026-10-30 <<'EOF'
+import json, statistics, sys, urllib.request
+from datetime import date, datetime, timedelta, timezone
+from decimal import Decimal, InvalidOperation
+
+KST = timezone(timedelta(hours=9))
+today = date.fromisoformat(sys.argv[1])  # 실행 시작 시 고정한 브리핑 날짜
+MAX_DISCOUNT = Decimal("0.5")
+
+def num(value):
+    # 제공값 문자열("9.26배", "22,292원", "N/A")을 Decimal로 바꾸고, 없거나 유한하지 않으면 None.
+    if value is None or isinstance(value, bool):
+        return None
+    text = str(value).replace(",", "").replace("배", "").replace("원", "").replace("%", "").strip()
+    try:
+        d = Decimal(text)
+    except InvalidOperation:
+        return None
+    return d if d.is_finite() else None
+
+def positive(value):
+    d = num(value)
+    return d if d is not None and d > 0 else None
+
+def median(values):
+    return statistics.median(values) if values else None
+
+def naver_json(path):
+    req = urllib.request.Request(f"https://m.stock.naver.com/api/stock/{path}",
+                                 headers={"User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=10) as response:
+        return json.load(response)
+
+def naver_infos(code):
+    data = naver_json(f"{code}/integration")
+    infos = {i.get("code"): i for i in data.get("totalInfos", [])}
+    return data, infos
+
+def yahoo_quarters(symbol):
+    import yfinance as yf
+    t = yf.Ticker(symbol)
+    cf, inc = t.quarterly_cashflow, t.quarterly_income_stmt
+    rows = []
+    for col in sorted(set(cf.columns) & set(inc.columns), reverse=True)[:5]:
+        def cell(frame, key):
+            if key not in frame.index:
+                return None
+            v = frame.loc[key, col]
+            return None if v != v else str(Decimal(str(v)).quantize(Decimal("1")))
+        rows.append({"period_end": col.date().isoformat(),
+                     "operating_income": cell(inc, "Operating Income"),
+                     "operating_cash_flow": cell(cf, "Operating Cash Flow"),
+                     "free_cash_flow": cell(cf, "Free Cash Flow")})
+    return rows
+
+def sustainability(quarters):
+    # 최신 분기와 4분기 전(전년 동기)을 같은 출처·같은 정의로 비교한다.
+    if not quarters:
+        return {"eligible": None, "error": "분기 실적 없음"}
+    latest = quarters[0]
+    if date.fromisoformat(latest["period_end"]) < today - timedelta(days=200):
+        return {"eligible": None, "error": f"최신 분기 자료가 오래됨: {latest['period_end']}"}
+    oi, ocf = num(latest["operating_income"]), num(latest["operating_cash_flow"])
+    if oi is None or ocf is None:
+        return {"eligible": None, "error": "영업이익 또는 영업현금흐름 누락"}
+    result = {"period_end": latest["period_end"], "operating_income_positive": oi > 0,
+              "operating_cash_flow_positive": ocf > 0, "eligible": oi > 0 and ocf > 0, "yoy": None}
+    prior = next((q for q in quarters[1:] if abs((date.fromisoformat(latest["period_end"])
+            - date.fromisoformat(q["period_end"])).days - 365) <= 10), None)
+    if prior and num(prior["operating_income"]) is not None and num(prior["operating_cash_flow"]) is not None:
+        result["yoy"] = {"period_end": prior["period_end"],
+                         "operating_income_maintained": oi >= num(prior["operating_income"]),
+                         "operating_cash_flow_maintained": ocf >= num(prior["operating_cash_flow"])}
+    yoy = result["yoy"]
+    result["grade"] = (0 if not result["eligible"] else
+                       2 if yoy and yoy["operating_income_maintained"] and yoy["operating_cash_flow_maintained"] else 1)
+    return result
+
+def kr(code):
+    out = {"source": "네이버 금융", "errors": []}
+    data, infos = naver_infos(code)
+    out["industry_code"] = data.get("industryCode")
+    for key in ("eps", "bps", "cnsEps"):
+        i = infos.get(key, {})
+        out[key] = {"value": str(num(i.get("value"))) if num(i.get("value")) is not None else None,
+                    "period": (i.get("valueDesc") or "").rstrip(".") or None,
+                    "basis": "추정" if key == "cnsEps" else "실제 최근 4분기 합산"}
+    peers = []
+    for p in data.get("industryCompareInfo") or []:
+        pc = p.get("itemCode")
+        if not pc or pc == code:
+            continue
+        try:
+            _, pi = naver_infos(pc)
+            peers.append({"code": pc, "name": p.get("stockName"),
+                          "per": str(positive(pi.get("per", {}).get("value")) or "") or None,
+                          "pbr": str(positive(pi.get("pbr", {}).get("value")) or "") or None,
+                          "per_period": (pi.get("per", {}).get("valueDesc") or "").rstrip(".") or None})
+        except Exception as e:
+            out["errors"].append(f"동종 {pc}: {type(e).__name__}: {e}"[:200])
+    out["peers"] = peers
+    try:
+        fi = naver_json(f"{code}/finance/annual")["financeInfo"]
+        actual = [t["key"] for t in fi["trTitleList"] if t.get("isConsensus") == "N"][-3:]
+        rows = {r["title"]: r["columns"] for r in fi["rowList"]}
+        out["history"] = [{"fiscal_year_end": k, "per": rows.get("PER", {}).get(k, {}).get("value"),
+                           "roe": rows.get("ROE", {}).get(k, {}).get("value")} for k in actual]
+    except Exception as e:
+        out["history"] = []
+        out["errors"].append(f"연간 재무: {type(e).__name__}: {e}"[:200])
+    out["urls"] = {"display": f"https://finance.naver.com/item/main.naver?code={code}",
+                   "per_share": f"https://m.stock.naver.com/api/stock/{code}/integration",
+                   "peers": f"https://m.stock.naver.com/api/stock/{code}/integration",
+                   "history": f"https://m.stock.naver.com/api/stock/{code}/finance/annual"}
+    return out
+
+def us(code):
+    import yfinance as yf
+    symbol = code.replace(".", "-")
+    out = {"source": "Yahoo Finance", "errors": []}
+    info = yf.Ticker(symbol).get_info()
+    if info.get("financialCurrency") != "USD":
+        raise ValueError(f"재무 통화 불일치: {info.get('financialCurrency')!r}")
+    out["industry_code"] = info.get("industryKey")
+    out["eps"] = {"value": str(info["trailingEps"]) if info.get("trailingEps") is not None else None,
+                  "period": "TTM", "basis": "실제 최근 4분기 합산(GAAP)"}
+    out["bps"] = {"value": str(info["bookValue"]) if info.get("bookValue") is not None else None,
+                  "period": "최근 분기", "basis": "실제"}
+    out["roe"] = str(info.get("returnOnEquity")) if info.get("returnOnEquity") is not None else None
+    peers = []
+    try:
+        top = yf.Industry(info["industryKey"]).top_companies
+        for pc in [s for s in top.index if s != symbol][:8]:
+            try:
+                pi = yf.Ticker(pc).get_info()
+                if pi.get("financialCurrency") != "USD":
+                    continue
+                peers.append({"code": pc, "name": pi.get("shortName"),
+                              "per": str(positive(pi.get("trailingPE")) or "") or None,
+                              "pbr": str(positive(pi.get("priceToBook")) or "") or None, "per_period": "TTM"})
+            except Exception as e:
+                out["errors"].append(f"동종 {pc}: {type(e).__name__}: {e}"[:200])
+    except Exception as e:
+        out["errors"].append(f"동종 목록: {type(e).__name__}: {e}"[:200])
+    out["peers"] = peers
+    out["history"] = []  # Yahoo는 과거 PER 제공값이 없어 자사 과거 비교는 기사로만 확인한다.
+    out["urls"] = {"display": f"https://finance.yahoo.com/quote/{symbol}/key-statistics",
+                   "per_share": f"https://finance.yahoo.com/quote/{symbol}/key-statistics",
+                   "peers": f"https://finance.yahoo.com/sectors/{info.get('sectorKey')}/{info.get('industryKey')}",
+                   "history": None}
+    return out
+
+def compare(market, code, close, close_date, f):
+    close = positive(close)
+    eps, bps = positive(f["eps"]["value"]), positive(f["bps"]["value"])
+    peer_per = [d for d in (positive(p["per"]) for p in f["peers"]) if d is not None]
+    peer_pbr = [d for d in (positive(p["pbr"]) for p in f["peers"]) if d is not None]
+    hist_per = [d for d in (positive(h["per"]) for h in f["history"]) if d is not None]
+    result = {"close": str(close), "per_close": None, "pbr_close": None, "comparisons": []}
+    if close is None:
+        result["error"] = "종가 없음"
+        return result
+    retrieved = datetime.now(KST).date().isoformat()
+    names = ", ".join(p["name"] or p["code"] for p in f["peers"])[:200]
+    def add(kind, metric, own, values, minimum, per_share, benchmark_url, subject):
+        if own is None:
+            return
+        entry = {"kind": kind, "metric": metric, "own": str(own), "sample": len(values)}
+        if len(values) < minimum:
+            entry.update(passed=None, reason=f"유효 비교값 {len(values)}개 (필요 {minimum}개)")
+        else:
+            bench = median(values)
+            discount = 1 - own / bench
+            entry.update(benchmark=str(bench), discount=str(discount), passed=own < bench)
+        if entry.get("passed") and discount >= MAX_DISCOUNT:
+            # 제공사 동종 분류·일회성 이익 때문에 생기는 과도한 격차는 저평가 근거로 쓰지 않는다.
+            entry.update(passed=None, reason=f"할인율 {MAX_DISCOUNT:.0%} 이상 — 비교 가능성 미확인")
+        elif entry.get("passed"):
+            # levels()에 그대로 넘길 수 있는 기준가치 입력. 채택 여부는 지침의 지표 선택 규칙을 따른다.
+            entry["valuation_basis"] = {"method": metric, "per_share": str(per_share), "benchmark": str(bench),
+                "evidence": {"per_share_url": f["urls"]["per_share"], "per_share_date": retrieved,
+                             "benchmark_url": benchmark_url, "benchmark_date": retrieved,
+                             "analyst": f"{f['source']} 제공값",
+                             "period": f"{f['eps' if metric == 'PER' else 'bps']['period']} "
+                                       f"({f['eps' if metric == 'PER' else 'bps']['basis']})",
+                             "actual_or_forecast": "actual",
+                             "accounting_basis": "제공사 표시 기준" if market == "KR" else "GAAP",
+                             "currency": "KRW" if market == "KR" else "USD", "share_unit": "보통주 1주",
+                             "split_basis": "제공사 현재 주식 수 기준", "comparison_subject": subject,
+                             "comparison_note": f"{kind} {len(values)}개 · 자사 배수 = 직전 종가 ÷ 제공 주당값",
+                             "valuation_date": close_date}}
+        result["comparisons"].append(entry)
+    per_close = close / eps if eps else None
+    pbr_close = close / bps if bps else None
+    result["per_close"] = str(per_close) if per_close else None
+    result["pbr_close"] = str(pbr_close) if pbr_close else None
+    years = ", ".join(h["fiscal_year_end"] for h in f["history"])
+    add("동종 중앙값", "PER", per_close, peer_per, 3, eps, f["urls"]["peers"], names)
+    add("자사 최근 3개 회계연도 중앙값", "PER", per_close, hist_per, 3, eps, f["urls"]["history"], f"자사 {years}")
+    add("동종 중앙값", "PBR", pbr_close, peer_pbr, 3, bps, f["urls"]["peers"], names)
+    return result
+
+def run(market, code, close, close_date):
+    base = {"market": market, "code": code,
+            "retrieved_at": datetime.now(KST).isoformat(timespec="seconds")}
+    try:
+        f = kr(code) if market == "KR" else us(code)
+    except Exception as e:
+        return {**base, "error": f"{type(e).__name__}: {e}"[:200]}
+    symbols = [f"{code}.KS", f"{code}.KQ"] if market == "KR" else [code.replace(".", "-")]
+    quarters = []
+    for s in symbols:
+        try:
+            quarters = yahoo_quarters(s)
+            if quarters:
+                break
+        except Exception as e:
+            f["errors"].append(f"분기 실적 {s}: {type(e).__name__}: {e}"[:200])
+    return {**base, **f, "quarters": quarters, "quarters_source": "Yahoo Finance",
+            "sustainability": sustainability(quarters), "valuation": compare(market, code, close, close_date, f)}
+
+for arg in sys.argv[2:]:
+    # 형식: KR:005930=종가@종가기준일 (시세 조회의 close·date를 그대로 넘긴다)
+    target, rest = arg.split("=", 1)
+    close, close_date = rest.split("@", 1)
+    market, code = target.split(":", 1)
+    print(json.dumps(run(market, code, close, close_date), ensure_ascii=False))
+EOF
+```
+
 ## 실행 정보
 
 부모가 존재하고 이번 실행에서 필요한 섹션의 게시 시도를 마쳤으면 실행 정보를 마지막 답글로 보낸다. 섹션 답글이 3번 실패했어도 진행한다. 실행 정보가 이미 있으면 중복 게시하지 않는다. 섹션은 모두 있으나 실행 정보만 빠졌다면 일치하는 스냅샷의 원래 조사 진단을 복원해 게시하고 `실행 정보 누락 복구`를 밝힌다. 원래 집계값은 저장된 값만 쓰며, 복원할 수 없으면 원래 토큰·모델·소요 시간은 `미확인`으로 쓴다. 조사 진단도 복원하지 못하면 `원래 조사 기록 복원 불가`로 쓰고 건수를 만들지 않는다. 새 실행의 값을 원래 실행의 값으로 대체하지 않는다.
@@ -802,7 +1052,7 @@ EOF
 
 1. **기준 설정**: 실제 시작 시각·실행 ID·작업 환경·지침 해시를 기록하고 브리핑 날짜와 72시간·30일·최근 7일의 기간을 고정한다. 추세 표본은 별도로 직전 거래일까지의 80거래일이다. 현재 세션 정보는 확인한 경우만 저장한다.
 2. **채널·실행 상태 확인**: ID `C0CDFHG8PL7`로 읽고, 실패하면 `slack_search_channels`로 찾는다. 페이지가 나뉘면 최근 7일의 부모를 모두 확인할 때까지 읽어 중복 목록을 만든다. 오늘 게시물이 이미 완성됐으면 종료한다. 작업이 필요하면 상태 경로의 쓰기·보존 상태와 잠금을 확인한 뒤 채널을 다시 읽는다. 오늘 부모가 있으면 원래 스냅샷을 보존하고 재실행 규칙으로 누락분만 처리한다.
-3. **탐색·빠른 확인**: 시장별 여섯 신호를 검색하고 발견 후보 목록을 저장한다. 조사 순서·한도를 적용해 중복·신호 날짜와 근거를 확인하고, 시세·급등·추세 및 EPS/BPS·비교배수의 확보 가능성을 확인한다. 확정된 제외·보류는 기록하고 후속 단계는 건너뛴다.
+3. **탐색·빠른 확인**: 시장별 여섯 신호를 검색하고 발견 후보 목록을 저장한다. 조사 순서·한도를 적용해 중복·신호 날짜와 근거를 확인하고, 시세·급등·추세를 조회한 뒤 통과 후보에 **가치·실적 지표 조회**를 한 번에 실행한다. 확정된 제외·보류는 기록하고 후속 단계는 건너뛴다.
 4. **상세 검증·확정**: 남은 후보의 저평가·실적 지속성을 검증하고 네 묶음 위험 검색과 목표가 확인을 마친다. 종가와 평가 기준일·단위·기간을 맞춘 모든 적용 가능한 PER/PBR 근거를 `evidence`와 함께 `levels()`에 전달한다. 산출 불가 후보는 보류한다. 조사 대상의 판정을 마친 뒤 적격 기업만 정해진 순서로 비교하며, 선정 수를 채워도 남은 조사 대상은 판정하거나 미조사로 명시한다. 선정 0개 시장은 **관찰 후보** 절차를 수행한다.
 5. **작성·검증**: 시장별 최종 상태·단계·사유를 집계하고 부모와 기업 답글을 작성한다. 아래 점검을 통과한 스냅샷을 원자적으로 저장·다시 읽어 확인한다. 0개 선정도 동일하다.
 6. **직접 게시**: 전송 직전에 오늘 부모를 다시 확인한다. 다른 실행이 게시했다면 새 부모를 보내지 않고 그 부모와 일치하는 원래 상태만 복원한다. 없으면 `slack_send_message`로 부모를 보내고 응답의 `ts`를 `thread_ts`로 써서 한국·미국 순으로 답글을 보낸다. 성공 시각·`ts`·시도 횟수를 즉시 저장한다. 초안 도구는 쓰지 않으며 `reply_broadcast`·`unfurl_app_links`는 설정하지 않는다.
@@ -813,7 +1063,7 @@ EOF
 게시한 메시지는 수정하지 않는다. 틀린 곳은 전송 전에 고친다.
 
 - **적격성**: 날짜·중복·신호 인정·정량 저평가·실적 지속성·네 묶음 위험 점검·급등·추세·가치기준 진입가 산출·상승여력 조건을 통과했으며 등급·가격상태·신호 점수·순위와 기록이 일치하는가. 미확인 후보로 충원하지 않았는가. 관찰 후보는 선정 0개 시장의 추세 단독 미충족 기업이고, 가격 블록 없이 집계 밖에 표시했는가.
-- **내용**: 설명 1줄·포인트 3줄·추세 확인 줄이 정해진 순서이고, 저평가 비교와 실제 이익·현금 창출의 근거 및 발행일·링크가 있는가. 모든 사실·수치·전망 인용에 근거가 있으며 권유·예측 문장이 없는가.
+- **내용**: 설명 1줄·포인트 3줄·추세 확인 줄이 정해진 순서이고, 저평가 비교와 실제 이익·현금 창출의 근거 및 출처 링크·조회일(기사는 발행일)이 있는가. 모든 사실·수치·전망 인용에 근거가 있으며 권유·예측 문장이 없는가.
 - **가격**: 종가 거래일이 `expected_date` 또는 검색으로 확인한 직전 거래일과 같은가. EPS/BPS·비교배수의 기간·회계·통화·주당 단위·출처가 맞는가. 모든 적용 가능한 기준가치의 최솟값·목표가 상한·20% 안전마진을 적용했는가. `entry ≤ buy_ceiling` 및 `entry ≤ close`, `stop < entry < take_profit`인가. `levels()` 결과·호가 단위·기간이 맞으며 손익 비율은 진입가 기준, 상승여력은 종가 기준인가. 산출 불가 기업을 보류했는가.
 - **추세·비교**: `trend.date == expected_date`이고 연속 80세션의 동일 수정주가 계열로 `trend.eligible == true`를 확인했는가. 기사 종가로 추세를 대체하지 않았는가. 가치평가 배수의 실제/예상·기간·회계 기준·종가 기준일 및 허용된 보정이 맞는가.
 - **일치**: 부모·답글·스냅샷의 회사명·순서·상승여력·가격조건 충족/진입대기 상태가 같은가. 재실행에서 원래 규칙 버전·모든 입력·가격을 복원하지 못하거나 부적격인 기업을 보류했는가. 이전 종가 기준 가격을 새 방식으로 바꾸지 않았는가.
