@@ -66,8 +66,8 @@ Reuters, AP, BBC, NYT, The Guardian, Politico(EU), The Verge, Ars Technica, USA 
 - 미국은 먼저 `신호 조회`의 `--discover-us`로 S&P 500·S&P MidCap 400 구성 종목을 훑는다. 신호 기간의 투자의견·목표가 상향(`target_raises`)과 Yahoo 실적 캘린더의 EPS 컨센서스 상회(`latest_earnings`)를 후보에 넣는다. 이 결과는 실적 컨센서스 상회·목표주가 상향 두 종류의 시장 탐색으로 기록하며, 구성 종목 밖의 기업은 기사 검색으로 보충한다. 구성 종목 조회나 실적 캘린더가 실패하면 실패한 종류를 기사로 검색한다. `failed` 종목은 해당 신호가 미확인이다. 탐색 결과의 `target_raises`·`latest_earnings`는 같은 스크립트의 후보 조회 결과와 같은 근거로 쓴다.
 - 시장별로 아래 신호 여섯 종류를 각각 한 번 이상 검색한다. 한국은 DART 탐색에 성공한 세 종류, 미국은 `--discover-us`에 성공한 두 종류를 제외한다. 회사명 없는 시장 탐색 검색에도 신호 기간 7일의 시작·끝을 명시하며, 여러 종류를 한 호출에 묶어도 종류별 검색어·결과·오류는 구분한다. 한 종류의 결과만 보고 다른 종류까지 조사했다고 기록하지 않는다.
 - 검색 결과에서 식별한 기업을 시장·종목코드/티커로 합쳐 후보 목록을 먼저 저장한다. 코드가 미확인이면 시장·회사명으로 임시 식별하고 나중에 병합한다. 동일 기업의 여러 기사·신호를 후보 수에 중복 가산하지 않는다.
-- 발견한 모든 후보는 상세 검증 전에 중복 확인과 **시세 조회**(급등·추세)를 한 번에 일괄 실행한다. 여기서 확정된 중복·급등 제외와 조회 오류 보류는 조사 한도에 세지 않는다. 추세 미충족은 제외하지 않고 상세 검증 대상에 남긴다. 시세 조회 1회에 너무 많은 종목을 넘겨 실행 제한에 걸리면 나눠 실행한다.
-- 이 빠른 확인을 통과한 후보의 상세 검증(신호 근거·저평가·실적·위험)은 시장별 최대 12개로 제한한다. 조사 순서는 추세 통과(`trend.eligible == true`) 후보 → 추세 미충족 후보 순이다. 각 그룹 안에서는 중복 제외 후 확인한 신호 점수 → 가장 최근의 인정 사건일 → 종목코드/티커 오름차순으로 정한다. 신호 근거가 미완료이면 먼저 신호를 확인하며, 불명확한 점수를 임의로 높이지 않는다. 이는 조사 순서이며 최종 선정 순위를 대신하지 않는다. 한도를 넘긴 후보는 `미조사: 조사 한도`로 남긴다.
+- **빠른 확인(한도 없음)**: 발견한 모든 후보에 중복 확인, **시세 조회**(급등·추세), 중복·급등·시세 오류가 없는 후보 전체에 **가치·실적 지표 조회**를 일괄 실행한다. 이 스크립트들은 기사 검색이 필요 없으므로 조사 한도와 무관하게 전체 후보에 돌린다. 저평가 1~3단계(주 지표 선택·`passed` 판정·스크립트 출력의 동종 종목명과 배수로 하는 비교 가능성 점검)도 여기서 마친다. 이 단계에서 확정된 중복·급등·저평가 미충족 제외와 시세·지표 조회 오류 보류는 조사 한도에 세지 않는다. 추세 미충족, 저평가 미확인(`passed: null`), `sustainability.eligible == false`(일회성 여부 기사 확인 필요)·`error`는 여기서 제외하지 않는다. 한 번에 너무 많은 종목을 넘겨 실행 제한에 걸리면 나눠 실행한다.
+- 빠른 확인을 통과한 후보의 상세 검증(기사로 하는 신호 근거·할인 이유·실적 보충·네 묶음 위험·목표가)은 시장별 최대 12개로 제한한다. 조사 순서는 스크립트 결과로 정한 그룹 순서다: ① 저평가 비교 통과·`sustainability.eligible == true`·추세 통과 → ② 저평가 비교 통과·`sustainability.eligible == true`·추세 미충족 → ③ 저평가 비교 통과·지속성 `false`/`error` → ④ 저평가 미확인. 각 그룹 안에서는 스크립트 기준 저평가 등급 → `sustainability.grade` → 신호 점수 → 가장 최근의 인정 사건일 → 종목코드/티커 오름차순으로 정한다. 스크립트 등급은 조사 순서용이며 최종 등급은 상세 검증 후 확정한다. 신호 근거가 미완료이면 먼저 신호를 확인하며, 불명확한 점수를 임의로 높이지 않는다. 이는 조사 순서이며 최종 선정 순위를 대신하지 않는다. 한도를 넘긴 후보는 `미조사: 조사 한도`로 남긴다.
 - 미확인 항목은 필요한 숫자·기간·정의를 넣어 최대 두 번 추가 검색한 뒤 보류한다. 기사 검색에서 공식 실적 발표 검색으로 전환한 것도 이 횟수에 포함한다. 필수 검색의 일시적 오류는 같은 검색을 한 번 재시도하며, 계속 실패하면 조회 오류로 기록한다. 이 횟수는 Slack 전송의 3회 재시도와 별개다.
 - 선행 조건을 통과한 후보는 네 묶음 위험 검색을 모두 마쳐야 선정할 수 있다. 후속 검색에서 선행 판정을 바꾸는 자료가 나오면 해당 단계로 돌아가 재검증한다. 탈락 후보의 빈자리는 남은 조사 대상에서 같은 절차로 확인한다.
 - 독립적인 검색·후보 시세 조회는 도구가 지원하면 묶어서 호출하고 결과는 항목별로 확인한다. 한도나 실행 제한 때문에 조사하지 못한 기업·신호 종류를 숨기지 않는다. 선정 수를 채우려고 기간·필수 조건을 완화하지 않는다. 추세 조건에 한한 **신뢰도 낮음 후보** 규칙만 예외다.
@@ -1040,6 +1040,7 @@ EOF
 
 - `eps`·`bps`: 제공사 표시값과 기준 기간. 한국은 네이버의 최근 4분기 합산 EPS·최근 분기 BPS, 미국은 Yahoo `trailingEps`·`bookValue`다. 한국 `cnsEps`는 참고용 추정치이며 진입가에 쓰지 않는다.
 - `peers`·`history`: 동종 종목별 PER·PBR과 최근 3개 실제 회계연도의 PER. 한국은 네이버 연간 PER·ROE다. 미국은 Yahoo 연간 희석 EPS·결산일 이전 마지막 종가(`close_date`)와 그 비율이며 ROE는 최상위 `roe`를 쓴다. 적자 연도는 PER이 없어 표본에서 빠진다.
+- 빠른 확인에서 후보 전체(수백 개)를 한 번에 넘긴다. 8개씩 병렬로 조회하고 동종·업종 조회를 실행 안에서 캐시하며, 입력 순서대로 출력한다(2026-11-13 시험 55종목 26초).
 - `valuation.comparisons`: 비교별 자사 배수·표본 수·중앙값·할인율·`passed`, 통과 비교의 `valuation_basis`(`levels()` 입력).
 - `quarters`·`sustainability`: Yahoo 분기 영업이익·영업현금흐름·FCF(최근 5분기)와 최신 분기 양수·전년 동기 유지 판정·최근 4분기 영업현금 유출 횟수(`ocf_negative_quarters_4q`)·등급.
 - 오류는 최상위 `error`(조회 자체 실패), `errors`(동종·연간·분기 일부 실패), `sustainability.error`로 남긴다. 일부 실패는 해당 비교만 미확인으로 처리한다. 제공값은 조회 시점 값이며 종가 기준일과 시차가 있을 수 있으므로 조회 시각을 함께 저장한다.
@@ -1050,6 +1051,7 @@ python3 - 2026-11-02 KR:005930=71200@2026-10-30 US:NVDA=182.4@2026-10-30 <<'EOF'
 import json, statistics, sys, urllib.request
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
+from functools import lru_cache
 
 KST = timezone(timedelta(hours=9))
 today = date.fromisoformat(sys.argv[1])  # 실행 시작 시 고정한 브리핑 날짜
@@ -1079,6 +1081,8 @@ def naver_json(path):
     with urllib.request.urlopen(req, timeout=10) as response:
         return json.load(response)
 
+# 같은 업종 후보가 많으면 동종 종목 조회가 겹치므로 실행 안에서 캐시한다.
+@lru_cache(maxsize=None)
 def naver_infos(code):
     data = naver_json(f"{code}/integration")
     infos = {i.get("code"): i for i in data.get("totalInfos", [])}
@@ -1167,11 +1171,21 @@ def kr(code):
                    "history": f"https://m.stock.naver.com/api/stock/{code}/finance/annual"}
     return out
 
+@lru_cache(maxsize=None)
+def yahoo_info(symbol):
+    import yfinance as yf
+    return yf.Ticker(symbol).get_info()
+
+@lru_cache(maxsize=None)
+def industry_top(industry_key):
+    import yfinance as yf
+    return list(yf.Industry(industry_key).top_companies.index)
+
 def us(code):
     import yfinance as yf
     symbol = code.replace(".", "-")
     out = {"source": "Yahoo Finance", "errors": []}
-    info = yf.Ticker(symbol).get_info()
+    info = yahoo_info(symbol)
     if info.get("financialCurrency") != "USD":
         raise ValueError(f"재무 통화 불일치: {info.get('financialCurrency')!r}")
     out["industry_code"] = info.get("industryKey")
@@ -1182,10 +1196,9 @@ def us(code):
     out["roe"] = str(info.get("returnOnEquity")) if info.get("returnOnEquity") is not None else None
     peers = []
     try:
-        top = yf.Industry(info["industryKey"]).top_companies
-        for pc in [s for s in top.index if s != symbol][:8]:
+        for pc in [s for s in industry_top(info["industryKey"]) if s != symbol][:8]:
             try:
-                pi = yf.Ticker(pc).get_info()
+                pi = yahoo_info(pc)
                 if pi.get("financialCurrency") != "USD":
                     continue
                 peers.append({"code": pc, "name": pi.get("shortName"),
@@ -1295,12 +1308,19 @@ def run(market, code, close, close_date):
     return {**base, **f, "quarters": quarters, "quarters_source": "Yahoo Finance",
             "sustainability": sustainability(quarters), "valuation": compare(market, code, close, close_date, f)}
 
-for arg in sys.argv[2:]:
+def run_arg(arg):
     # 형식: KR:005930=종가@종가기준일 (시세 조회의 close·date를 그대로 넘긴다)
     target, rest = arg.split("=", 1)
     close, close_date = rest.split("@", 1)
     market, code = target.split(":", 1)
-    print(json.dumps(run(market, code, close, close_date), ensure_ascii=False))
+    return run(market, code, close, close_date)
+
+# 빠른 확인에서 후보 전체를 넘기므로 8개씩 병렬 조회하고 입력 순서대로 출력한다.
+from concurrent.futures import ThreadPoolExecutor
+import yfinance  # noqa: F401 — 스레드에서 동시에 처음 import하지 않도록 미리 불러온다.
+with ThreadPoolExecutor(max_workers=8) as pool:
+    for result in pool.map(run_arg, sys.argv[2:]):
+        print(json.dumps(result, ensure_ascii=False), flush=True)
 EOF
 ```
 
@@ -1392,7 +1412,7 @@ EOF
 
 1. **기준 설정**: 실제 시작 시각·실행 ID·작업 환경·지침 해시를 기록하고 브리핑 날짜와 신호 기간 7일·근거 30일·중복 확인 최근 7일의 기간을 고정한다. 추세 표본은 별도로 직전 거래일까지의 80거래일이다. 현재 세션 정보는 확인한 경우만 저장한다.
 2. **채널·실행 상태 확인**: ID `C0CDFHG8PL7`로 읽고, 실패하면 `slack_search_channels`로 찾는다. 페이지가 나뉘면 최근 7일의 부모를 모두 확인할 때까지 읽어 중복 목록을 만든다. 오늘 게시물이 이미 완성됐으면 종료한다. 작업이 필요하면 상태 경로의 쓰기·보존 상태와 잠금을 확인한 뒤 채널을 다시 읽는다. 오늘 부모가 있으면 원래 스냅샷을 보존하고 재실행 규칙으로 누락분만 처리한다.
-3. **탐색·빠른 확인**: 시장별 여섯 신호를 검색하고 발견 후보 목록을 저장한다. 조사 순서·한도를 적용해 후보에 **신호 조회**를 한 번에 실행하고 중복·신호 날짜와 근거를 확인하고, 시세·급등·추세를 조회한 뒤 중복·급등·조회 오류가 없는 후보에 **가치·실적 지표 조회**를 한 번에 실행한다. 추세 미충족 후보도 포함한다. 확정된 제외·보류는 기록하고 후속 단계는 건너뛴다.
+3. **탐색·빠른 확인**: 시장별 여섯 신호를 검색하고 발견 후보 목록을 저장한다. 발견한 모든 후보에 중복 확인과 시세·급등·추세 조회를 하고, 중복·급등·조회 오류가 없는 후보 전체에 **가치·실적 지표 조회**를 한 번에 실행해 저평가 1~3단계를 판정한다(추세 미충족 후보 포함, 조사 한도 미적용). 그다음 조사 순서 그룹에 따라 상위 후보부터 **신호 조회**와 신호 근거 확인을 한다. 확정된 제외·보류는 기록하고 후속 단계는 건너뛴다.
 4. **상세 검증·확정**: 남은 후보의 저평가·실적 지속성을 검증하고 네 묶음 위험 검색과 목표가 확인을 마친다. 종가와 평가 기준일·단위·기간을 맞춘 모든 적용 가능한 PER/PBR 근거를 `evidence`와 함께 `levels()`에 전달한다. 산출 불가 후보는 보류한다. 조사 대상의 판정을 마친 뒤 적격 기업만 정해진 순서로 비교하며, 선정 수를 채워도 남은 조사 대상은 판정하거나 미조사로 명시한다. 신뢰도 정상 기업이 2개보다 적은 시장은 **신뢰도 낮음 후보**로 남은 자리를 채운다.
 5. **작성·검증**: 시장별 최종 상태·단계·사유를 집계하고 부모와 기업 답글을 작성한다. 아래 점검을 통과한 스냅샷을 원자적으로 저장·다시 읽어 확인한다. 0개 선정도 동일하다.
 6. **직접 게시**: 전송 직전에 오늘 부모를 다시 확인한다. 다른 실행이 게시했다면 새 부모를 보내지 않고 그 부모와 일치하는 원래 상태만 복원한다. 없으면 `slack_send_message`로 부모를 보내고 응답의 `ts`를 `thread_ts`로 써서 한국·미국 순으로 답글을 보낸다. 성공 시각·`ts`·시도 횟수를 즉시 저장한다. 초안 도구는 쓰지 않으며 `reply_broadcast`·`unfurl_app_links`는 설정하지 않는다.
