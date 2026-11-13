@@ -39,7 +39,7 @@
 
 - 기사·공시는 직접 열지 않고 **WebSearch의 제목·URL·요약**으로 확인한다. 예외로 아래 **신호 조회** 스크립트의 정형 데이터(DART OpenAPI 공시 목록, Yahoo Finance 투자의견·실적 발표, 네이버 리포트 목록)는 근거로 쓴다. 공시 본문의 금액·주당 배당금 등은 기사·검색 결과로 확인하며, EDGAR 공시는 보도 기사로 확인한다. 검색 요약에 없는 본문을 읽은 것처럼 기록하거나 숫자·기간을 보완하지 않는다.
 - 지표 스크립트가 제공하지 않는 EPS/BPS·실제 이익·현금흐름·FFO/AFFO·규제자본 수치가 기사 검색에서 부족하면 **회사 공식 실적 발표문·IR 보도자료의 검색 결과**를 보조 근거로 허용한다. 명시된 수치와 정의를 옮기는 범위이며 공시 원문·재무제표를 열거나 직접 분석하지 않는다. 발행일·대상 기간·기준·원문 URL을 확인하고 같은 30일 제한을 적용한다. 아래의 해당 수치에 관한 `기사 근거`에는 이 보조 근거도 포함한다. 동종·과거 배수 비교, 목표주가와 위험 판정은 계속 보도 기사로 확인한다.
-- 종가·일간 등락률·시가총액·추세 지표는 아래 **시세 조회** 스크립트를 쓴다. EPS·BPS·동종/자사 과거 PER·PBR·분기 영업이익·영업현금흐름은 아래 **가치·실적 지표 조회** 스크립트의 제공사 표시값(한국 네이버 금융, 미국·분기 실적 Yahoo Finance)을 우선 쓴다. 기사 검색은 신호·할인 이유·위험 판정과 제공값이 없는 비교의 보충에 쓴다. 제공값은 옮겨 쓰는 것이며, 허용하는 계산은 `직전 종가 ÷ 제공 EPS·BPS`, 비교값의 중앙값, 상대 할인율, 가치기준 진입가뿐이다. 이익·자산·미래 매출을 자체 추정하거나 재무제표 항목을 조합해 새 지표를 만들지 않는다.
+- 종가·일간 등락률·시가총액·추세 지표는 아래 **시세 조회** 스크립트를 쓴다. EPS·BPS·동종/자사 과거 PER·PBR·분기 영업이익·영업현금흐름은 아래 **가치·실적 지표 조회** 스크립트의 제공사 표시값(한국 네이버 금융, 미국·분기 실적 Yahoo Finance)을 우선 쓴다. 기사 검색은 신호·할인 이유·위험 판정과 제공값이 없는 비교의 보충에 쓴다. 제공값은 옮겨 쓰는 것이며, 허용하는 계산은 `직전 종가 ÷ 제공 EPS·BPS`, 미국 자사 과거 PER용 `회계연도 말 종가 ÷ 제공 연간 희석 EPS`, 비교값의 중앙값, 상대 할인율, 가치기준 진입가뿐이다. 이익·자산·미래 매출을 자체 추정하거나 재무제표 항목을 조합해 새 지표를 만들지 않는다.
 - 링크는 검색 결과에서 확인한 원문 URL만 쓰고 `utm_*` 등 추적 파라미터를 제거한다. Google News 리다이렉트 URL은 쓰지 않는다.
 - 기업별 긍정 신호 대표 링크는 가장 신뢰도 높은 원문 하나를 쓴다. 별도 위험 점검 기사 내용을 본문에 인용하면 발행일과 근거 링크도 붙인다.
 - `#daily-news-brief`는 읽지 않으며, 그 채널과의 기업 중복은 제한하지 않는다.
@@ -120,18 +120,18 @@ Reuters, AP, BBC, NYT, The Guardian, Politico(EU), The Verge, Ars Technica, USA 
 | 비교 | 한국 | 미국 | 최소 표본 |
 |---|---|---|---|
 | 동종 PER·PBR | 네이버 동일업종 비교 종목의 PER·PBR | Yahoo 업종 상위 기업(최대 8개)의 trailing PER·PBR | 양수 3개 |
-| 자사 과거 PER | 네이버 최근 3개 실제 회계연도 PER | 제공값 없음 — 기사로만 보충 | 양수 3개 |
+| 자사 과거 PER | 네이버 최근 3개 실제 회계연도 PER | Yahoo 최근 3개 회계연도마다 `결산일 이전 마지막 종가 ÷ 연간 희석 EPS`(둘 다 Yahoo의 분할 반영 값) | 양수 3개 |
 
 1. **주 지표 선택**: 일반 기업은 PER 비교를, 금융·보험은 PBR 비교와 PER 비교를 함께 쓴다. 일반 기업의 PBR 비교는 참고로만 기록한다. EPS가 음수이거나 없는 기업은 PER 저평가 근거가 없다.
 2. **판정**: 주 지표로 확인한 비교(`passed`가 `true`/`false`)가 모두 `true`여야 한다. 하나라도 `false`면 저평가 미충족으로 **제외**한다. 표본 부족(`passed: null`)은 미확인으로 남기며 통과로 보지 않는다.
 3. **비교 가능성 점검**: 동종 목록은 제공사 분류라 사업 구성이 다를 수 있다. 스크립트는 할인율 50% 이상인 비교를 `passed: null`(비교 가능성 미확인)로 돌린다. 그 밖에도 동종 종목명과 각 배수를 보고 사업이 명백히 다른 종목(지주사·적자 회복기 등)이 중앙값을 좌우하면 해당 비교를 미확인으로 돌린다. 임의로 일부 종목만 빼서 다시 계산하거나 50% 기준을 바꾸지 않는다.
 4. **할인 이유 점검**: `회사명 일회성 이익 OR 처분이익 OR 평가이익` / `티커 one-time gain OR impairment OR restructuring`으로 30일 기사를 검색한다. 최근 4분기 EPS가 일회성 이익으로 부풀었다는 기사가 있으면 PER 비교를 미확인으로 돌리고, 정상 이익 기준의 기사 비교가 없으면 **보류**한다. PBR을 쓰면 최근 회계연도 ROE 양수(한국 `history.roe`, 미국 `roe`)와 자산 부실 기사 미발견을 확인한다.
-5. **기사 비교 보충(선택)**: 스크립트로 확인하지 못한 비교(미국 자사 과거 PER 등)는 `회사명 밸류에이션 동종업계 PER PBR` / `티커 valuation peers historical multiple`로 30일 기사에서 보충할 수 있다. 이때는 지표 정의·실제/예상·대상 기간·회계 기준·평가 기준일을 확인하고, 직전 종가 기준이 아니면 기준주가와 EPS·BPS가 함께 있고 이후 실적·주식 수 변경이 없음을 확인한 경우에만 `기사 배수 × 직전 종가 ÷ 기사 기준주가`로 보정한다. 원래 값·보정값·전제를 기록한다. 단순한 `저평가` 표현·목표가 괴리·고점 대비 하락률은 인정하지 않는다.
+5. **기사 비교 보충(선택)**: 스크립트로 확인하지 못한 비교(제공값 누락·표본 부족 등)는 `회사명 밸류에이션 동종업계 PER PBR` / `티커 valuation peers historical multiple`로 30일 기사에서 보충할 수 있다. 이때는 지표 정의·실제/예상·대상 기간·회계 기준·평가 기준일을 확인하고, 직전 종가 기준이 아니면 기준주가와 EPS·BPS가 함께 있고 이후 실적·주식 수 변경이 없음을 확인한 경우에만 `기사 배수 × 직전 종가 ÷ 기사 기준주가`로 보정한다. 원래 값·보정값·전제를 기록한다. 단순한 `저평가` 표현·목표가 괴리·고점 대비 하락률은 인정하지 않는다.
 
 비교·할인율은 Python `Decimal`로 계산하고 반올림 전 값으로 판정한다. 상대 할인율은 `1 − 자사 배수 ÷ 비교 배수`다. 서로 다른 업종·지표의 할인율 크기로 순위를 매기지 않으며, 모든 기업에 `PER 10배 이하` 같은 공통 절대 기준을 적용하지 않는다.
 
 - **저평가 근거 등급 2**: 동종 비교와 자사 과거 비교를 모두 확인해 통과했다.
-- **저평가 근거 등급 1**: 둘 중 하나만 확인해 통과했다(미국은 기사 보충이 없으면 최대 1).
+- **저평가 근거 등급 1**: 둘 중 하나만 확인해 통과했다.
 - **보류**: 주 지표 비교를 하나도 확인하지 못했거나 할인 이유 점검이 미완료다. 스크립트 `error`는 조회 오류 보류다.
 
 ### 가치기준 진입가 — 필수
@@ -1039,7 +1039,7 @@ EOF
 시세 조회를 통과한 후보를 한 번에 넘긴다. 인수는 `KR:종목코드=종가@종가기준일` / `US:티커=종가@종가기준일`이며, 종가·기준일은 시세 조회의 `close`·`date`를 그대로 쓴다. 종목마다 JSON 한 줄을 출력한다. 시세 조회와 같은 인터프리터를 쓴다.
 
 - `eps`·`bps`: 제공사 표시값과 기준 기간. 한국은 네이버의 최근 4분기 합산 EPS·최근 분기 BPS, 미국은 Yahoo `trailingEps`·`bookValue`다. 한국 `cnsEps`는 참고용 추정치이며 진입가에 쓰지 않는다.
-- `peers`·`history`: 동종 종목별 PER·PBR, 한국 최근 3개 실제 회계연도의 PER·ROE.
+- `peers`·`history`: 동종 종목별 PER·PBR과 최근 3개 실제 회계연도의 PER. 한국은 네이버 연간 PER·ROE다. 미국은 Yahoo 연간 희석 EPS·결산일 이전 마지막 종가(`close_date`)와 그 비율이며 ROE는 최상위 `roe`를 쓴다. 적자 연도는 PER이 없어 표본에서 빠진다.
 - `valuation.comparisons`: 비교별 자사 배수·표본 수·중앙값·할인율·`passed`, 통과 비교의 `valuation_basis`(`levels()` 입력).
 - `quarters`·`sustainability`: Yahoo 분기 영업이익·영업현금흐름·FCF(최근 5분기)와 최신 분기 양수·전년 동기 유지 판정·최근 4분기 영업현금 유출 횟수(`ocf_negative_quarters_4q`)·등급.
 - 오류는 최상위 `error`(조회 자체 실패), `errors`(동종·연간·분기 일부 실패), `sustainability.error`로 남긴다. 일부 실패는 해당 비교만 미확인으로 처리한다. 제공값은 조회 시점 값이며 종가 기준일과 시차가 있을 수 있으므로 조회 시각을 함께 저장한다.
@@ -1196,11 +1196,34 @@ def us(code):
     except Exception as e:
         out["errors"].append(f"동종 목록: {type(e).__name__}: {e}"[:200])
     out["peers"] = peers
-    out["history"] = []  # Yahoo는 과거 PER 제공값이 없어 자사 과거 비교는 기사로만 확인한다.
+    out["history"] = []
+    try:
+        # Yahoo는 과거 PER을 직접 주지 않으므로 최근 3개 회계연도마다 결산일 이전 마지막 종가 ÷ 연간 희석 EPS로 만든다.
+        # 두 값 모두 Yahoo가 분할을 반영한 계열이다(auto_adjust=False의 Close는 분할만 반영, 배당 미반영).
+        t = yf.Ticker(symbol)
+        inc = t.income_stmt
+        if "Diluted EPS" not in inc.index:
+            raise ValueError("연간 희석 EPS 없음")
+        years = sorted(inc.columns, reverse=True)[:3]
+        closes = t.history(start=(min(years) - timedelta(days=10)).date().isoformat(),
+                           end=(max(years) + timedelta(days=1)).date().isoformat(),
+                           auto_adjust=False, timeout=10)["Close"].dropna()
+        for fy in years:
+            eps = positive(inc.loc["Diluted EPS", fy])
+            before = closes[closes.index.date <= fy.date()]
+            close_at = positive(before.iloc[-1]) if len(before) else None
+            out["history"].append({"fiscal_year_end": fy.date().isoformat(),
+                                   "per": str(close_at / eps) if eps and close_at else None,
+                                   "eps": str(eps) if eps else None,
+                                   "close": str(close_at) if close_at else None,
+                                   "close_date": before.index[-1].date().isoformat() if len(before) else None,
+                                   "roe": None})
+    except Exception as e:
+        out["errors"].append(f"연간 PER: {type(e).__name__}: {e}"[:200])
     out["urls"] = {"display": f"https://finance.yahoo.com/quote/{symbol}/key-statistics",
                    "per_share": f"https://finance.yahoo.com/quote/{symbol}/key-statistics",
                    "peers": f"https://finance.yahoo.com/sectors/{info.get('sectorKey')}/{info.get('industryKey')}",
-                   "history": None}
+                   "history": f"https://finance.yahoo.com/quote/{symbol}/financials"}
     return out
 
 def compare(market, code, close, close_date, f):
