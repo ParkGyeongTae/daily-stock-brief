@@ -80,11 +80,13 @@ Reuters, AP, BBC, NYT, The Guardian, Politico(EU), The Verge, Ars Technica, USA 
 |---|---|
 | 선정 | 모든 필수 조건을 통과(`신뢰도 정상`)했거나 신뢰도 낮음 후보 조건을 통과(`신뢰도 낮음`)했고, 시장별 최종 2개 안에 듦 |
 | 적격 미선정 | 위 두 신뢰도 중 하나를 통과했지만 순위에서 밀림 |
-| 제외 | 확인된 중복·신호 요건 미충족·급등·제외 사유·상승여력 미달 |
+| 제외 | 확인된 중복·신호 요건 미충족·급등·저평가 미충족(제공 EPS 0 이하 포함)·제외 사유·상승여력 미달 |
 | 보류 | 신호 날짜·실제치/컨센서스·EPS/BPS·배수 정합성·현금흐름 등 필수 근거 미확인 또는 조회 오류 |
 | 미조사 | 조사 한도·실행 제한 등으로 필요한 조사를 시작하거나 끝내지 못함 |
 
 후보마다 `confidence`(`normal`/`low`/`null`)를 저장한다. 선정·적격 미선정 수는 그중 신뢰도 낮음 수를 함께 집계한다. 추세 미충족과 다른 미충족·보류 사유가 함께 있으면 최종 상태와 대표 사유는 그 다른 사유로 정하고, 추세 미충족은 추가 사유로 남긴다. 시장별로 `발견 = 선정 + 적격 미선정 + 제외 + 보류 + 미조사`를 코드로 확인한다. 단계별 진입·통과 수와 대표 사유별 수는 별도로 집계하되 한 후보를 같은 최종 집계에 두 번 세지 않는다. 시장 탐색 검색 자체의 실패는 후보 수로 만들지 않고 검색 오류에 기록한다. 다른 인정 신호가 없는 후보의 신호 점수가 근거 부족으로 0점이면 보류, 확인한 사실이 요건에 맞지 않아 0점이면 제외다.
+
+조회 오류는 스크립트가 출력한 `error`·`warnings`·`retry`의 원문(출처·예외 이름·메시지)을 그대로 저장한다. `결측`·`요청 제한`처럼 원인을 추정해 바꿔 쓰지 않는다. 대표 사유별 집계에서 조회 오류는 `출처·예외 이름`(예: `Yahoo Finance: YFRateLimitError`, `ValueError: 종가 기준일 불일치`)으로 묶어 세고, 유형마다 원문 예시 하나를 남긴다. Slack의 주요 사유도 이 유형명을 쓴다.
 
 시장 상태는 `조사 범위 미완료`(탐색 종류 누락 또는 미조사 있음) → `조회 오류`(판정에 필요한 도구 오류 미해결) → `근거 미확인`(보류 있음) → `조사 완료` 순으로 처음 해당하는 값을 쓴다. 복수 사유는 모두 보존한다. `조사 완료`는 이 실행의 검색·발견 범위에 한정하며 시장 전체를 조사했다는 뜻이 아니다. 빈 섹션에는 `검증: 상태 · 주요 사유 최대 2개(건수)`를 붙인다. 발견 0개이면 탐색 검색의 정상 완료 여부를 밝힌다. 보류·미조사 기업을 추천 목록이나 가격 블록에 넣지 않는다.
 
@@ -122,7 +124,7 @@ Reuters, AP, BBC, NYT, The Guardian, Politico(EU), The Verge, Ars Technica, USA 
 | 동종 PER·PBR | 네이버 동일업종 비교 종목의 PER·PBR | Yahoo 업종 상위 기업(최대 8개)의 trailing PER·PBR | 양수 3개 |
 | 자사 과거 PER | 네이버 최근 3개 실제 회계연도 PER | Yahoo 최근 3개 회계연도마다 `결산일 이전 마지막 종가 ÷ 연간 희석 EPS`(둘 다 Yahoo의 분할 반영 값) | 양수 3개 |
 
-1. **주 지표 선택**: 일반 기업은 PER 비교를, 금융·보험은 PBR 비교와 PER 비교를 함께 쓴다. 일반 기업의 PBR 비교는 참고로만 기록한다. EPS가 음수이거나 없는 기업은 PER 저평가 근거가 없다.
+1. **주 지표 선택**: 일반 기업은 PER 비교를, 금융·보험은 PBR 비교와 PER 비교를 함께 쓴다. 일반 기업의 PBR 비교는 참고로만 기록한다. 제공 EPS(`eps.value`)가 0 이하로 확인되면 PER 저평가 근거가 없다는 사실이 확인된 것이므로 `제외: 저평가 미충족(EPS 0 이하로 PER 근거 없음)`으로 처리한다(일반·금융 공통). EPS 값 자체가 없거나 조회에 실패한 경우만 미확인으로 보류한다.
 2. **판정**: 주 지표로 확인한 비교(`passed`가 `true`/`false`)가 모두 `true`여야 한다. 하나라도 `false`면 저평가 미충족으로 **제외**한다. 표본 부족(`passed: null`)은 미확인으로 남기며 통과로 보지 않는다.
 3. **비교 가능성 점검**: 동종 목록은 제공사 분류라 사업 구성이 다를 수 있다. 스크립트는 할인율 50% 이상인 비교를 `passed: null`(비교 가능성 미확인)로 돌린다. 그 밖에도 동종 종목명과 각 배수를 보고 사업이 명백히 다른 종목(지주사·적자 회복기 등)이 중앙값을 좌우하면 해당 비교를 미확인으로 돌린다. 임의로 일부 종목만 빼서 다시 계산하거나 50% 기준을 바꾸지 않는다.
 4. **할인 이유 점검**: `회사명 일회성 이익 OR 처분이익 OR 평가이익` / `티커 one-time gain OR impairment OR restructuring`으로 30일 기사를 검색한다. 최근 4분기 EPS가 일회성 이익으로 부풀었다는 기사가 있으면 PER 비교를 미확인으로 돌리고, 정상 이익 기준의 기사 비교가 없으면 **보류**한다. PBR을 쓰면 최근 회계연도 ROE 양수(한국 `history.roe`, 미국 `roe`)와 자산 부실 기사 미발견을 확인한다.
@@ -132,7 +134,7 @@ Reuters, AP, BBC, NYT, The Guardian, Politico(EU), The Verge, Ars Technica, USA 
 
 - **저평가 근거 등급 2**: 동종 비교와 자사 과거 비교를 모두 확인해 통과했다.
 - **저평가 근거 등급 1**: 둘 중 하나만 확인해 통과했다.
-- **보류**: 주 지표 비교를 하나도 확인하지 못했거나 할인 이유 점검이 미완료다. 스크립트 `error`는 조회 오류 보류다.
+- **보류**: 주 지표 비교를 하나도 확인하지 못했거나 할인 이유 점검이 미완료다. 제공 EPS 0 이하로 PER 비교가 없는 경우는 보류가 아니라 제외다. 스크립트 `error`는 조회 오류 보류다.
 
 ### 가치기준 진입가 — 필수
 
@@ -245,7 +247,7 @@ Reuters, AP, BBC, NYT, The Guardian, Politico(EU), The Verge, Ars Technica, USA 
 | 저장 항목 | 내용 |
 |---|---|
 | 실행 식별 | 실행 ID·세션 ID/기록 경로(미확인 상태 포함)·실제 작업 경로·Git 커밋·AGENTS.md SHA-256·상태 경로와 보존 확인 여부·브리핑 날짜·07:00 KST 기준 시각·확인한 예정 시각 또는 미확인·실제 시작/각 게시/집계 시각·채널 ID·부모 원문·`parent_ts`(게시 전 `null`) |
-| 조사 진단 | 시장별 여섯 신호 탐색의 검색어·기간·결과·오류, 발견한 모든 후보의 식별자·단계별 기록·최종 상태·대표/추가 사유·조사 순서·미수행 항목, 상태별/단계별/대표 사유별 집계·시장 상태, 후보별 `confidence`와 신뢰도 낮음 채택 이유, 미국 `--discover-us`의 구성 종목 수·실적 캘린더 건수·`failed` |
+| 조사 진단 | 시장별 여섯 신호 탐색의 검색어·기간·결과·오류, 조회 오류 유형별 건수와 원문 예시·재조회 결과, 발견한 모든 후보의 식별자·단계별 기록·최종 상태·대표/추가 사유·조사 순서·미수행 항목, 상태별/단계별/대표 사유별 집계·시장 상태, 후보별 `confidence`와 신뢰도 낮음 채택 이유, 미국 `--discover-us`의 구성 종목 수·실적 캘린더 건수·`failed` |
 | 기업별 근거 | 시장·종목코드/티커·회사명·순서·시세 조회 결과·사용한 종가의 날짜와 출처·목표가의 값/미확인 상태·증권사·리포트 날짜·기사 URL·`levels()` 결과 |
 | 진입가 근거 | 가격 규칙 버전 `value-entry-v1`, 모든 적용 가능한 PER/PBR 입력과 기사 발행일/URL·주체·대상 기간·통화/주당 단위, 각 기준가치·보수 기준가치·목표가 상한 반영 여부·안전마진·매수상한·최종 진입가·상태 |
 | 필수 선정 검증 | 신호 조회와 가치·실적 지표 조회 결과 전체, 저평가 비교 지표·대상·기간·기준일·원값/보정값·할인 이유·기사 발행일/URL·등급, 실적/현금흐름의 대상 기간·실제 수치·일회성/자금조달 점검·등급, `trend` 전체 결과, 네 묶음 위험 검색과 판정, 신호 점수·선정 순위 |
@@ -495,6 +497,8 @@ def levels(price, target, market, brief_date, valuation_bases):
 - `expected_date`는 브리핑 날짜 전날까지의 최근 거래일이다. `exchange_calendars`의 한국 `XKRX`·미국 `XNYS` 달력을 사용한다. 한국은 달력에 빠진 임시 휴장일이 있으므로 KOSPI 지수의 실제 거래일(네이버 → Yahoo `^KS11`)과 교차 확인해 지수가 거래되지 않은 날을 세션에서 뺀다. 두 출처 모두 실패하면 달력 조회 실패로 처리한다. 미국 NYSE·Nasdaq에는 같은 거래일 달력을 적용한다. 달력 조회 실패 시 종가를 성공으로 처리하지 않고 위 **종가 조회 실패 시**를 따른다.
 - 내부 날짜는 `YYYY-MM-DD`이며, 메시지에서는 `M/D`로 표시한다. `daily_change_pct`·`surge_excluded`는 신호 기간에 맞춰 브리핑 날짜 − 7일 이후의 일간 등락률을 소수 둘째 자리로 반올림한 표시값이다. `surge_excluded`는 센트 단위로 미리 반올림하지 않은 원래 가격을 `Decimal`로 비교한 결과다. `close_raw`에 원래 종가를 보존하고 미국의 표시·가격 계산용 `close`는 1센트로 반올림한다.
 - 대체 출처로 성공해도 `warnings`에 남은 이전 출처 오류를 최종 기록에 포함한다.
+- 스크립트는 종가·추세·시가총액 중 하나라도 오류인 종목을 전체 조회 후 60초 기다렸다가 한 번 더 조회한다. 두 번째 결과를 쓰고 첫 시도 오류는 `retry.first_errors`에 남긴다. `--discover-us`처럼 Yahoo를 대량 조회한 직후 실패가 몰릴 수 있기 때문이다.
+- 재조회 뒤에도 한 시장 후보의 절반 이상(10개 이상)이 오류이면 **대량 조회 오류**로 본다. 개별 종목 문제로 판정하지 않고, 기사 검색 등 다른 작업을 먼저 진행한 뒤 실패 종목만 이 스크립트를 한 번 더 실행한다. 그래도 실패한 종목만 조회 오류로 보류하며, 각 시도의 시각과 오류 원문을 기록한다.
 - `market_cap`은 원/달러 값(`value`), 통화(`currency`), 출처(`source`), KST 조회 시각(`retrieved_at`), 표시 문구(`display`)다. `market_cap.error`만 있으면 종가 조회 실패로 취급하지 않고 `시가총액 미확인`을 표시한다.
 - 추세는 종가 조회와 독립적으로 Yahoo Finance의 `Adj Close`에서 계산한다. 한국은 `.KS` → `.KQ`, 미국은 티커를 사용한다. 조회 범위는 과거 400일이며 거래소의 마지막 80세션이 모두 있어야 한다. 서로 다른 출처·수정/비수정 계열을 이어 붙이지 않는다. 네이버 종가 성공도 추세 조회를 생략할 이유가 되지 않는다.
 - `trend`는 출처·심볼·기준일·표본 시작일·20거래일 전 비교일·수정종가·두 이동평균·조건별 판정·`eligible`·사용한 80개 수정종가를 담는다. 판정은 반올림 전 `Decimal` 합계로 하며 이동평균의 표시 반올림값을 쓰지 않는다. 추세 오류는 `trend.error`, 이전 대체 출처 오류는 `trend.warnings`에 남긴다. 종가·시가총액 성공과 별개로 처리한다.
@@ -505,7 +509,7 @@ def levels(price, target, market, brief_date, valuation_bases):
 python3 -m pip install -q yfinance beautifulsoup4 'exchange_calendars>=4.11.3'
 # 첫 인수는 실행 시작 시 고정한 브리핑 날짜로, 나머지는 실제 후보로 바꾼다.
 python3 - 2026-11-02 KR:005930 US:NVDA <<'EOF'
-import ast, json, sys, urllib.request
+import ast, json, sys, time, urllib.request
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, ROUND_HALF_UP
 from functools import lru_cache
@@ -730,11 +734,27 @@ def quote(market, code):
             errors.append(f"{name}: {type(e).__name__}: {e}"[:200])
     return {**base, "error": errors}
 
-for arg in sys.argv[2:]:
-    market, code = arg.split(":", 1)
+RETRY_WAIT = 60  # 초. Yahoo 대량 조회 직후의 일시 실패를 피하려고 실패 종목만 한 번 다시 조회한다.
+
+def lookup(market, code):
     result = quote(market, code)
     result["market_cap"] = market_cap(market, code)
     result["trend"] = trend(market, code)
+    return result
+
+def errors_of(result):
+    return {k: v for k, v in {"quote": result.get("error"), "market_cap": result["market_cap"].get("error"),
+                              "trend": result["trend"].get("error")}.items() if v}
+
+targets = [arg.split(":", 1) for arg in sys.argv[2:]]
+results = [lookup(market, code) for market, code in targets]
+failed = [i for i, r in enumerate(results) if errors_of(r)]
+if failed:
+    time.sleep(RETRY_WAIT)
+    for i in failed:
+        first = errors_of(results[i])
+        results[i] = {**lookup(*targets[i]), "retry": {"waited_sec": RETRY_WAIT, "first_errors": first}}
+for result in results:
     print(json.dumps(result, ensure_ascii=False))
 EOF
 ```
@@ -1457,6 +1477,7 @@ EOF
 생략·대체:
 - 빈 섹션·미달·분할 게시·채널 검색 대체·재실행·보류 사유
 - 종가·시가총액·추세 조회 실패 기업, 달력·기준일 불일치 오류·warnings·대체 출처·매매가 미산출 여부
+- 조회 오류 유형(출처·예외 이름)별 건수와 원문 예시, 스크립트 내 재조회(`retry`)·추가 재실행의 횟수·결과
 
 후보·선정 근거:
 - 발견한 모든 후보의 최종 상태·최초 차단 단계·대표/추가 사유·미수행 단계; 선정·적격 미선정 기업의 저평가 등급·지속성 등급·신호 점수·순위
