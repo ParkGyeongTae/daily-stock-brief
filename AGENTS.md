@@ -67,12 +67,12 @@
 
 ### 조사 범위와 종료
 
-- **한국 탐색**: `신호 조회 --discover-kr`로 신호 기간의 DART 자사주·배당·공급계약 공시를 모은다. 실패하면 그 세 종류를 기사로 검색한다.
+- **한국 탐색**: `신호 조회 --discover-kr`로 신호 기간의 DART 자사주·배당·공급계약 공시와 네이버 종목분석 리포트 목록(`research_reports`)을 모은다. DART가 실패하면 그 세 종류를, 리포트 목록이 실패하면 목표주가·투자의견 상향을 기사로 검색한다. 리포트 목록은 후보 발견 경로일 뿐이며 상향 여부는 상세 검증에서 기사로 확인한다.
 - **미국 탐색**: `신호 조회 --discover-us`로 S&P 500·S&P MidCap 400 구성 종목의 신호 기간 투자의견·목표가 상향(`target_raises`)과 Yahoo 실적 캘린더의 EPS 컨센서스 상회(`latest_earnings`)를 모은다. 구성 종목 밖의 기업은 기사 검색으로 보충한다. 구성 종목·실적 캘린더 조회가 실패하면 실패한 종류를 기사로 검색한다. `failed` 종목은 해당 신호가 미확인이다. 탐색 결과는 후보 조회 결과와 같은 근거로 쓴다.
-- **기사 탐색**: 시장별로 아래 신호 여섯 종류를 각각 한 번 이상 검색한다. 스크립트 탐색에 성공한 종류(한국 세 종류, 미국 두 종류)는 제외한다. 회사명 없는 검색에도 신호 기간의 시작·끝을 명시하며, 여러 종류를 한 호출에 묶어도 종류별 검색어·결과·오류를 구분한다. 한 종류의 결과로 다른 종류까지 조사했다고 기록하지 않는다.
+- **기사 탐색**: 시장별로 아래 신호 여섯 종류를 각각 한 번 이상 검색한다. 스크립트 탐색에 성공한 종류(한국은 DART 세 종류와 리포트 목록이 성공하면 목표주가·투자의견 상향, 미국 두 종류)는 제외한다. 회사명 없는 검색에도 신호 기간의 시작·끝을 명시하며, 여러 종류를 한 호출에 묶어도 종류별 검색어·결과·오류를 구분한다. 한 종류의 결과로 다른 종류까지 조사했다고 기록하지 않는다.
 - 식별한 기업을 시장·종목코드/티커로 합쳐 후보 목록을 저장한다. 코드가 미확인이면 시장·회사명으로 임시 식별하고 나중에 병합한다. 같은 기업의 여러 기사·신호를 후보 수에 중복 가산하지 않는다.
-- **빠른 확인(한도 없음)**: 발견한 모든 후보에 중복 확인과 **시세 조회**를, 중복·급등·시세 오류가 없는 후보 전체에 **가치·실적 지표 조회**를 일괄 실행하고 저평가 1~3단계까지 마친다. 기사 검색이 필요 없으므로 조사 한도와 무관하며, 여기서 확정된 제외·조회 오류 보류는 한도에 세지 않는다. 추세 미충족, 저평가 미확인(`passed: null`), `sustainability`의 `false`·`error`는 여기서 제외하지 않는다. 실행 제한에 걸리면 나눠 실행한다.
-- **상세 검증(시장별 최대 12개)**: 빠른 확인을 통과한 후보의 기사 기반 검증(신호 근거·할인 이유·실적 보충·네 묶음 위험·목표가)을 다음 그룹 순서로 한다. ① 저평가 비교 통과·지속성 `true`·추세 통과 → ② 저평가 비교 통과·지속성 `true`·추세 미충족 → ③ 저평가 비교 통과·지속성 `false`/`error` → ④ 저평가 미확인. 그룹 안에서는 스크립트 기준 저평가 등급 → `sustainability.grade` → 신호 점수 → 가장 최근 인정 사건일 → 종목코드/티커 오름차순이다. 이는 조사 순서이며 최종 순위·등급은 상세 검증 후 확정한다. 신호 근거가 미완료이면 신호부터 확인하고, 불명확한 점수를 임의로 높이지 않는다. 한도를 넘긴 후보는 `미조사: 조사 한도`로 남긴다.
+- **빠른 확인(한도 없음)**: 발견한 모든 후보에 중복 확인과 **시세 조회**를, 중복·급등·시세 오류가 없는 후보 전체에 **가치·실적 지표 조회**를 일괄 실행하고 저평가 1~3단계까지 마친다. 기사 검색이 필요 없으므로 조사 한도와 무관하며, 여기서 확정된 제외·조회 오류 보류는 한도에 세지 않는다. 추세 미충족, 저평가 미확인(`passed: null`), `sustainability`의 `false`·`error`는 여기서 제외하지 않는다. 실행 제한에 걸리면 나눠 실행하며, 빠른 확인을 끝내지 않은 채 후보를 `미조사`로 남기지 않는다. 그래도 끝내지 못한 후보는 `미조사: 실행 제한(빠른 확인)`으로 따로 세고 막힌 원인(도구 오류 원문·시간 초과 등)을 기록한다.
+- **상세 검증(시장별 최대 12개)**: 빠른 확인을 통과한 후보의 기사 기반 검증(신호 근거·할인 이유·실적 보충·네 묶음 위험·목표가)을 다음 그룹 순서로 한다. ① 저평가 비교 통과·지속성 `true`·추세 통과 → ② 저평가 비교 통과·지속성 `true`·추세 미충족 → ③ 저평가 비교 통과·지속성 `false`/`error` → ④ 저평가 미확인. 그룹 안에서는 스크립트 기준 저평가 등급 → `sustainability.grade` → 신호 점수 → 가장 최근 인정 사건일 → 종목코드/티커 오름차순이다. 이는 조사 순서이며 최종 순위·등급은 상세 검증 후 확정한다. 신호 근거가 미완료이면 신호부터 확인하고, 불명확한 점수를 임의로 높이지 않는다. 한도를 넘긴 후보는 그룹 번호를 붙여 `미조사: 조사 한도(그룹 ④)`처럼 남긴다. 한도 안에서 시작했지만 끝내지 못한 후보는 `미조사: 실행 제한(상세 검증)`과 막힌 원인을 기록한다.
 - 선행 조건을 통과한 후보는 네 묶음 위험 검색을 모두 마쳐야 선정할 수 있다. 후속 검색에서 선행 판정을 바꾸는 자료가 나오면 해당 단계로 돌아가 재검증한다. 탈락 후보의 빈자리는 남은 조사 대상에서 같은 절차로 확인하며, 선정 수를 채운 뒤에도 남은 조사 대상은 판정하거나 미조사로 명시한다.
 - 독립적인 검색·조회는 도구가 지원하면 묶어서 호출하되 결과는 항목별로 확인한다. 한도나 실행 제한 때문에 조사하지 못한 기업·신호 종류를 숨기지 않는다.
 
@@ -90,10 +90,11 @@
 
 - 추세 미충족과 다른 미충족·보류 사유가 함께 있으면 최종 상태와 대표 사유는 그 다른 사유로 정하고, 추세 미충족은 추가 사유로 남긴다.
 - 다른 인정 신호가 없는 후보의 신호 점수가 근거 부족으로 0점이면 보류, 확인한 사실이 요건에 맞지 않아 0점이면 제외다.
-- 시장별로 `발견 = 선정 + 적격 미선정 + 제외 + 보류 + 미조사`를 코드로 확인한다. 선정·적격 미선정 수에는 그중 신뢰도 낮음 수를 함께 적는다. 단계별 진입·통과 수와 대표 사유별 수는 따로 집계하되 한 후보를 같은 집계에 두 번 세지 않는다. 시장 탐색 검색 자체의 실패는 후보 수가 아니라 검색 오류로 기록한다.
+- 시장별로 `발견 = 선정 + 적격 미선정 + 제외 + 보류 + 미조사`를 코드로 확인한다. 선정·적격 미선정 수에는 그중 신뢰도 낮음 수를 함께 적는다. 단계별 진입·통과 수와 대표 사유별 수는 따로 집계하되 한 후보를 같은 집계에 두 번 세지 않는다. 미조사는 `조사 한도(그룹 ①~④)`·`실행 제한(빠른 확인)`·`실행 제한(상세 검증)`을 서로 다른 대표 사유로 세고 하나로 합쳐 표시하지 않는다. 시장 탐색 검색 자체의 실패는 후보 수가 아니라 검색 오류로 기록한다.
 - 조회 오류는 스크립트가 출력한 `error`·`warnings`·`retry`의 원문(출처·예외 이름·메시지)을 그대로 저장한다. `결측`·`요청 제한`처럼 원인을 추정해 바꿔 쓰지 않는다. 대표 사유별 집계에서 조회 오류는 `출처·예외 이름`(예: `Yahoo Finance: YFRateLimitError`, `ValueError: 종가 기준일 불일치`)으로 묶어 세고 유형마다 원문 예시 하나를 남긴다. Slack의 주요 사유도 이 유형명을 쓴다.
+- 상태별·대표 사유별 집계는 스냅샷의 집계 객체 하나에 저장하고, 부모의 `검증:` 줄, 빈 시장 답글의 검증·건수 줄, 실행 정보의 집계·주요 사유 줄을 모두 이 객체에서 코드로 만든다. 주요 사유는 건수 내림차순(같으면 사유명 오름차순)으로 뽑으며, 메시지마다 사유를 따로 고르거나 사유명을 바꿔 쓰지 않는다.
 
-시장 상태는 `조사 범위 미완료`(탐색 종류 누락 또는 미조사 있음) → `조회 오류`(판정에 필요한 도구 오류 미해결) → `근거 미확인`(보류 있음) → `조사 완료` 순으로 처음 해당하는 값을 쓰고 복수 사유는 모두 보존한다. `조사 완료`는 이 실행의 검색·발견 범위에 한정하며 시장 전체를 조사했다는 뜻이 아니다.
+시장 상태는 `조사 범위 미완료`(탐색 종류 누락, 그룹 ①~③의 `조사 한도` 미조사, 또는 `실행 제한` 미조사 있음) → `조회 오류`(판정에 필요한 도구 오류 미해결) → `근거 미확인`(보류 있음) → `조사 완료` 순으로 처음 해당하는 값을 쓰고 복수 사유는 모두 보존한다. `조사 완료`는 이 실행의 검색·발견 범위에 한정하며 시장 전체를 조사했다는 뜻이 아니다. 그룹 ④(저평가 미확인)만 조사 한도로 남았다면 상태를 낮추지 않되 미조사 건수는 그대로 집계·표시한다.
 
 ### 긍정 신호와 점수
 
@@ -129,7 +130,7 @@
 
 1. **주 지표 선택**: 일반 기업은 PER 비교를, 금융·보험은 PBR 비교와 PER 비교를 함께 쓴다. 일반 기업의 PBR 비교는 참고로만 기록한다. 제공 EPS(`eps.value`)가 0 이하로 확인되면 `제외: 저평가 미충족(EPS 0 이하로 PER 근거 없음)`이다(일반·금융 공통). EPS 값 자체가 없거나 조회에 실패한 경우만 미확인으로 보류한다.
 2. **판정**: 주 지표로 확인한 비교(`passed`가 `true`/`false`)가 모두 `true`여야 한다. 하나라도 `false`면 저평가 미충족으로 **제외**한다. 표본 부족(`passed: null`)은 미확인이다.
-3. **비교 가능성 점검**: 동종 목록은 제공사 분류라 사업 구성이 다를 수 있다. 스크립트는 할인율 50% 이상인 비교를 `passed: null`로 돌린다. 그 밖에도 동종 종목명과 배수를 보고 사업이 명백히 다른 종목(지주사·적자 회복기 등)이 중앙값을 좌우하면 해당 비교를 미확인으로 돌린다. 일부 종목만 빼서 다시 계산하거나 50% 기준을 바꾸지 않는다.
+3. **비교 가능성 점검**: 동종 목록은 제공사 분류라 사업 구성이 다를 수 있다. 스크립트는 할인율 50% 이상인 비교를 `passed: null`로 돌린다. 그 밖에도 동종 종목명과 배수를 보고 사업이 명백히 다른 종목(지주사·적자 회복기 등)이 중앙값을 좌우하면 해당 비교를 미확인으로 돌린다. 자사 과거 PER은 스크립트가 표본 연도의 연간 EPS를 최근 4분기 EPS와 비교해, 절반 미만인 연도(이익 회복기라 과거 배수가 부풀려짐)가 있거나 연간 EPS를 확인하지 못하면 `passed: null`로 돌린다. 일부 종목·연도만 빼서 다시 계산하거나 50% 기준을 바꾸지 않는다.
 4. **할인 이유 점검**: `회사명 일회성 OR 처분이익 OR 평가이익 OR 환급 OR 법인세 효과` / `티커 one-time gain OR one-time benefit OR non-recurring OR tax benefit OR refund OR impairment`로 30일 기사·공식 발표를 검색한다. 최근 4분기 이익에 일회성 이익·환급·세금 효과가 포함됐다는 기사·공식 발표가 있으면 금액·영향의 확인 여부와 관계없이 PER 비교를 미확인으로 돌리고, 그 효과를 뺀 정상 이익 기준의 기사 비교가 없으면 **보류**한다. 이 사실을 리스크 줄로 설명해 통과시키지 않는다. PBR을 쓰면 최근 회계연도 ROE 양수(한국 `history.roe`, 미국 `roe`)와 자산 부실 기사 미발견을 확인한다.
 5. **기사 비교 보충(선택)**: 스크립트로 확인하지 못한 비교는 `회사명 밸류에이션 동종업계 PER PBR` / `티커 valuation peers historical multiple`로 30일 기사에서 보충할 수 있다. 지표 정의·실제/예상·대상 기간·회계 기준·평가 기준일을 확인하고, 직전 종가 기준이 아니면 기준주가와 EPS·BPS가 함께 있고 이후 실적·주식 수 변경이 없을 때만 `기사 배수 × 직전 종가 ÷ 기사 기준주가`로 보정해 원래 값·보정값·전제를 기록한다. 단순한 `저평가` 표현·목표가 괴리·고점 대비 하락률은 인정하지 않는다.
 
@@ -312,7 +313,7 @@ _회사 설명 1줄 · 시가총액 12.3조 원 (네이버, 11/2 07:02 KST 조�
 • 수익실현·손절: 추세 조건 통과 전 미산출   ← 수익실현·손절 두 줄 대신
 ```
 
-빈 시장 답글은 헤더·빈 섹션 문구·검증 상태·`발견 n · 선정 n · 적격 미선정 n · 제외 n · 보류 n · 미조사 n`·주요 사유 최대 2개만 쓴다. 빈 답글도 게시·재실행 완료 판정에서 해당 시장의 답글로 센다.
+빈 시장 답글은 헤더·빈 섹션 문구·`검증: 시장 상태`·`발견 n · 선정 n · 적격 미선정 n · 제외 n · 보류 n · 미조사 n`·`주요 사유: 최대 2개(건수)`만 각각 별도 줄로 쓰며, 검증·건수·주요 사유는 집계 객체에서 만든 실행 정보의 값과 같아야 한다. 빈 답글도 게시·재실행 완료 판정에서 해당 시장의 답글로 센다.
 
 ### 가격 블록
 
@@ -723,8 +724,8 @@ EOF
 
 긍정 신호의 날짜·종류와 미국 목표가를 정형 데이터로 확인한다. 한국 DART 조회는 `DART_API_KEY`가 필요하며 키 값은 기록·출력·메시지에 남기지 않는다. 환경변수가 없고 작업 폴더에 `.env`(Git 제외, 형식은 `.env.example`)가 있으면 `set -a; . ./.env; set +a`로 불러온다. 키가 없거나 DART가 실패하면 `errors`에 남고 기사 검색으로 보충한다.
 
-- `--discover-kr`: 신호 기간의 유가증권(`Y`)·코스닥(`K`) 주요사항·거래소 공시 중 자사주·배당·공급계약 분류를 종목별로 모은다. 페이지 한도로 일부만 조회하면 `errors`에 남는다.
-- `--discover-us`: Wikipedia 구성표에서 S&P 500·S&P MidCap 400 종목(약 900개)을 받아 종목별 투자의견·목표가 상향을 8개 병렬로 조회하고, EPS 컨센서스 상회는 Yahoo 실적 캘린더(100건 단위 페이지)에서 찾는다. 종목별 실적 발표 조회를 수백 번 반복하면 Yahoo가 요청을 제한하기 때문이다. 결과는 `candidates`(신호가 있는 종목)·`failed`·`errors`다.
+- `--discover-kr`: 신호 기간의 유가증권(`Y`)·코스닥(`K`) 주요사항·거래소 공시 중 자사주·배당·공급계약 분류를 종목별로 모으고, 네이버 종목분석 리포트 전체 목록에서 신호 기간 리포트(`research_reports`)가 있는 종목을 더한다. 리포트 종목의 시장은 네이버 종목 기본정보로 확인해 유가증권·코스닥만 후보로 넣고, 나머지(코넥스·확인 실패 포함)는 `research.skipped`에 남긴다. 페이지 한도로 일부만 조회하면 `errors`에 남는다.
+- `--discover-us`: Wikipedia 구성표에서 S&P 500·S&P MidCap 400 종목(약 900개)을 받아 종목별 투자의견·목표가 상향을 8개 병렬로 조회하고, EPS 컨센서스 상회는 Yahoo 실적 캘린더(100건 단위 페이지)에서 찾는다. 종목별 실적 발표 조회를 수백 번 반복하면 Yahoo가 요청을 제한하기 때문이다. 실적 캘린더가 실패하면 60초 뒤 한 번 다시 조회하며, `earnings_calendar_events`가 `null`이 아니면 성공이고 `errors`의 `1차` 오류는 재시도 기록이다. 결과는 `candidates`(신호가 있는 종목)·`failed`·`errors`다.
 - 후보 조회(`KR:종목코드` / `US:티커`):
   - 한국: `disclosures`(신호 기간 긍정 공시), `earnings_releases`(잠정실적 공시), `risk_disclosures`(30일 희석·소송·규제 공시), `research_reports`(신호 기간 네이버 리포트 목록). 각 항목에 날짜·제목·링크가 있다.
   - 미국: `target_raises`(신호 기간 상향)·`target_raise_score`, `target_cuts_30d`(30일 하향), `targets_30d`(30일 안의 목표가가 있는 모든 투자의견), `latest_earnings`(최근 실적 발표의 EPS 추정·실제·`beat`·`in_signal_window`).
@@ -917,8 +918,64 @@ def discover_kr():
                                                            "market": corp_cls, "disclosures": []})["disclosures"].append(row)
             except Exception as e:
                 errors.append(f"{corp_cls}/{kind}: {type(e).__name__}: {e}"[:200])
+    try:
+        reports, truncated = research_list()
+        if truncated:
+            errors.append("네이버 리포트: 20페이지까지만 조회")
+        by_code = {}
+        for r in reports:
+            by_code.setdefault(r["code"], []).append(r)
+        new = [c for c in by_code if c not in found]
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            markets = dict(zip(new, pool.map(listing_market, new)))
+        skipped = []
+        for code, rows in by_code.items():
+            if code in found:
+                found[code]["research_reports"] = rows
+                continue
+            market = markets[code]
+            if market in ("Y", "K"):
+                found[code] = {"code": code, "name": rows[0]["name"], "market": market,
+                               "disclosures": [], "research_reports": rows}
+            else:
+                skipped.append({"code": code, "name": rows[0]["name"], "market": market})
+        research = {"reports": len(reports), "companies": len(by_code), "skipped": skipped}
+    except Exception as e:
+        research = None
+        errors.append(f"네이버 리포트: {type(e).__name__}: {e}"[:200])
     return {"mode": "discover", "window": [signal_start.isoformat(), cutoff.isoformat()],
-            "candidates": sorted(found.values(), key=lambda c: c["code"]), "errors": errors}
+            "candidates": sorted(found.values(), key=lambda c: c["code"]), "research": research, "errors": errors}
+
+def research_list(max_pages=20):
+    # 네이버 종목분석 리포트 전체 목록(최신순)에서 신호 기간 리포트만 모은다. 상향 여부는 기사로 확인한다.
+    rows, page = [], 1
+    while True:
+        req = urllib.request.Request(f"https://m.stock.naver.com/api/research/company?page={page}&pageSize=100",
+                                     headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            data = json.load(response)
+        for r in data:
+            d = date.fromisoformat(r["writeDate"])
+            if r.get("itemCode") and inside(d, signal_start):
+                rows.append({"code": r["itemCode"], "name": r.get("itemName"), "date": d.isoformat(),
+                             "broker": r.get("brokerName"), "title": r.get("title"), "url": r.get("endUrl")})
+        if len(data) < 100 or date.fromisoformat(data[-1]["writeDate"]) <= signal_start.date():
+            return rows, False
+        if page >= max_pages:
+            return rows, True
+        page += 1
+
+def listing_market(code):
+    # 리포트 목록에는 시장 구분이 없어 네이버 종목 기본정보로 유가증권(Y)·코스닥(K)을 확인한다.
+    try:
+        req = urllib.request.Request(f"https://m.stock.naver.com/api/stock/{code}/basic",
+                                     headers={"User-Agent": "Mozilla/5.0"})
+        with urllib.request.urlopen(req, timeout=10) as response:
+            name = (json.load(response).get("stockExchangeType") or {}).get("name")
+        return {"KOSPI": "Y", "KOSDAQ": "K"}.get(name, name)
+    except Exception as e:
+        return f"확인 실패: {type(e).__name__}: {e}"[:200]
 
 US_INDEXES = [("S&P 500", "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"),
               ("S&P MidCap 400", "https://en.wikipedia.org/wiki/List_of_S%26P_400_companies")]
@@ -974,12 +1031,18 @@ def discover_us():
     # 시장 탐색: 구성 종목의 신호 기간 투자의견·목표가 상향(종목별 조회)과 실적 컨센서스 상회(캘린더)를 모은다.
     from concurrent.futures import ThreadPoolExecutor
     import yfinance  # noqa: F401 — 스레드에서 동시에 처음 import하면 덜 초기화된 모듈이 보일 수 있다.
+    from time import sleep
     universe, errors = us_universe()
-    try:
-        beats, scanned_events = earnings_beats()
-    except Exception as e:
-        beats, scanned_events = None, None
-        errors.append(f"실적 캘린더: {type(e).__name__}: {e}"[:200])
+    beats, scanned_events, calendar_errors = None, None, []
+    for attempt in range(2):  # 시세 조회와 같이 60초 뒤 한 번 다시 조회하고 첫 시도 오류도 남긴다.
+        try:
+            beats, scanned_events = earnings_beats()
+            break
+        except Exception as e:
+            calendar_errors.append(f"실적 캘린더 {attempt + 1}차: {type(e).__name__}: {e}"[:200])
+            if attempt == 0:
+                sleep(60)
+    errors += calendar_errors
     def scan(code):
         try:
             return code, us(code, earnings=False)
@@ -1022,7 +1085,7 @@ EOF
 시세 조회를 통과한 후보 전체를 한 번에 넘긴다(8개씩 병렬, 동종·업종 조회는 실행 안에서 캐시, 입력 순서대로 출력). 인수는 `KR:종목코드=종가@종가기준일` / `US:티커=종가@종가기준일`이며 시세 조회의 `close`·`date`를 그대로 쓴다.
 
 - `eps`·`bps`: 한국은 네이버의 최근 4분기 합산 EPS·최근 분기 BPS, 미국은 Yahoo `trailingEps`·`bookValue`다. 한국 `cnsEps`는 참고용 추정치다.
-- `peers`·`history`: 동종 종목별 PER·PBR과 최근 3개 실제 회계연도 PER. 한국은 네이버 연간 PER·ROE, 미국은 Yahoo 연간 희석 EPS·결산일 이전 마지막 종가(`close_date`)와 그 비율이며 ROE는 최상위 `roe`다. 적자 연도는 표본에서 빠진다.
+- `peers`·`history`: 동종 종목별 PER·PBR과 최근 3개 실제 회계연도 PER. 한국은 네이버 연간 PER·EPS·ROE, 미국은 Yahoo 연간 희석 EPS·결산일 이전 마지막 종가(`close_date`)와 그 비율이며 ROE는 최상위 `roe`다. 적자 연도는 표본에서 빠진다. 표본 연도의 연간 EPS가 최근 4분기 EPS의 절반 미만이거나 확인되지 않으면 자사 과거 비교는 `passed: null`이다(이익 회복기의 부풀려진 과거 배수 방지, 절반은 운영 기준).
 - `valuation.comparisons`: 비교별 자사 배수·표본 수·중앙값·할인율·`passed`, 통과 비교의 `valuation_basis`(`levels()` 입력).
 - `quarters`·`sustainability`: Yahoo 분기 영업이익·영업현금흐름·FCF(최근 5분기)와 최신 분기 판정·`yoy`·`ocf_negative_quarters_4q`·등급.
 - 오류는 최상위 `error`(조회 실패), `errors`(동종·연간·분기 일부 실패), `sustainability.error`로 남는다. 일부 실패는 해당 비교만 미확인이다. 제공값은 조회 시점 값이므로 조회 시각을 함께 저장한다.
@@ -1143,6 +1206,7 @@ def kr(code):
         actual = [t["key"] for t in fi["trTitleList"] if t.get("isConsensus") == "N"][-3:]
         rows = {r["title"]: r["columns"] for r in fi["rowList"]}
         out["history"] = [{"fiscal_year_end": k, "per": rows.get("PER", {}).get(k, {}).get("value"),
+                           "eps": rows.get("EPS", {}).get(k, {}).get("value"),
                            "roe": rows.get("ROE", {}).get(k, {}).get("value")} for k in actual]
     except Exception as e:
         out["history"] = []
@@ -1233,7 +1297,7 @@ def compare(market, code, close, close_date, f):
         return result
     retrieved = datetime.now(KST).date().isoformat()
     names = ", ".join(p["name"] or p["code"] for p in f["peers"])[:200]
-    def add(kind, metric, own, values, minimum, per_share, benchmark_url, subject):
+    def add(kind, metric, own, values, minimum, per_share, benchmark_url, subject, unverified=None):
         if own is None:
             return
         entry = {"kind": kind, "metric": metric, "own": str(own), "sample": len(values)}
@@ -1246,6 +1310,8 @@ def compare(market, code, close, close_date, f):
         if entry.get("passed") and discount >= MAX_DISCOUNT:
             # 제공사 동종 분류·일회성 이익 때문에 생기는 과도한 격차는 저평가 근거로 쓰지 않는다.
             entry.update(passed=None, reason=f"할인율 {MAX_DISCOUNT:.0%} 이상 — 비교 가능성 미확인")
+        elif entry.get("passed") and unverified:
+            entry.update(passed=None, reason=unverified)
         elif entry.get("passed"):
             # levels()에 그대로 넘길 수 있는 기준가치 입력. 채택 여부는 지침의 지표 선택 규칙을 따른다.
             entry["valuation_basis"] = {"method": metric, "per_share": str(per_share), "benchmark": str(bench),
@@ -1266,8 +1332,21 @@ def compare(market, code, close, close_date, f):
     result["per_close"] = str(per_close) if per_close else None
     result["pbr_close"] = str(pbr_close) if pbr_close else None
     years = ", ".join(h["fiscal_year_end"] for h in f["history"])
+    # 이익이 크게 낮았던 해의 PER은 부풀려져 있어 회복 국면의 기업을 싸게 보이게 하므로 과거 비교에서 쓰지 않는다.
+    hist_note = None
+    for h in f["history"]:
+        if positive(h["per"]) is None:
+            continue
+        year_eps = num(h.get("eps"))
+        if year_eps is None:
+            hist_note = f"{h['fiscal_year_end']} 연간 EPS 미확인 — 이익 회복기 여부 확인 불가"
+            break
+        if eps and year_eps < eps / 2:
+            hist_note = f"{h['fiscal_year_end']} 연간 EPS {year_eps} < 최근 4분기 EPS {eps}의 절반 — 이익 회복기 배수"
+            break
     add("동종 중앙값", "PER", per_close, peer_per, 3, eps, f["urls"]["peers"], names)
-    add("자사 최근 3개 회계연도 중앙값", "PER", per_close, hist_per, 3, eps, f["urls"]["history"], f"자사 {years}")
+    add("자사 최근 3개 회계연도 중앙값", "PER", per_close, hist_per, 3, eps, f["urls"]["history"], f"자사 {years}",
+        unverified=hist_note)
     add("동종 중앙값", "PBR", pbr_close, peer_pbr, 3, bps, f["urls"]["peers"], names)
     return result
 
@@ -1392,8 +1471,7 @@ EOF
 
 1. **기준 설정**: 실제 시작 시각·실행 ID·작업 환경·지침 해시를 기록하고 브리핑 날짜와 각 기간을 고정한다.
 2. **채널 확인**: ID `C0CDFHG8PL7`로 읽고, 실패하면 `slack_search_channels`로 찾는다. 최근 7일의 부모를 모두 확인할 때까지 페이지를 읽어 중복 목록을 만든다. 오늘 게시물이 완성됐으면 종료하고, 오늘 부모가 있으면 재실행 규칙으로 누락분만 처리한다. 작업이 필요하면 상태 경로와 잠금을 확인한 뒤 채널을 다시 읽는다.
-3. **탐색·빠른 확인**: 시장 탐색과 기사 탐색으로 후보를 모으고, 전체 후보에 시세 조회와 가치·실적 지표 조회를 돌려 저평가 1~3단계를 판정한다.
-4. **상세 검증·확정**: 조사 순서대로 신호·저평가·실적 지속성·위험·목표가를 확인하고 `levels()`로 가격을 계산한 뒤 적격 기업의 순위를 정한다. 신뢰도 정상 기업이 2개보다 적은 시장은 신뢰도 낮음 후보로 채운다.
+3. **탐색·빠른 확인**: 시장 탐색과 기사 탐색으로 후보를 모으고, 전체 후보에 시세 조회와 가치·실적 지표 조회를 돌려 저평가 1~3단계를 판정한다.4. **상세 검증·확정**: 조사 순서대로 신호·저평가·실적 지속성·위험·목표가를 확인하고 `levels()`로 가격을 계산한 뒤 적격 기업의 순위를 정한다. 신뢰도 정상 기업이 2개보다 적은 시장은 신뢰도 낮음 후보로 채운다.
 5. **작성·검증**: 시장별 집계와 부모·답글을 작성하고, 아래 점검을 통과한 스냅샷을 저장·다시 읽어 확인한다. 선정 0개도 같다.
 6. **게시**: 전송 직전 오늘 부모를 다시 확인한다. 다른 실행이 게시했다면 새 부모를 보내지 않고 그 부모와 일치하는 상태만 복원한다. 없으면 `slack_send_message`로 부모를 보내고 응답의 `ts`를 `thread_ts`로 써서 한국·미국 순으로 답글을 보낸다. 성공 시각·`ts`·시도 횟수를 즉시 저장한다. 초안 도구는 쓰지 않으며 `reply_broadcast`·`unfurl_app_links`는 설정하지 않는다.
 7. **마무리**: 사용량을 집계해 실행 정보 답글을 보내고 게시 결과를 갱신한다. 실패·예외로 끝나도 실행 기록과 오류를 보존하고 자신이 소유한 잠금만 해제한다.
@@ -1406,8 +1484,8 @@ EOF
 - **내용**: 설명 1줄·포인트 3줄·추세 줄의 순서, 저평가·실적 근거의 출처 링크와 조회일·발행일, 모든 사실·전망 인용의 근거가 있고 권유·예측 문장이 없는가.
 - **가격**: 종가 거래일이 `expected_date`와 같고, EPS/BPS·비교배수의 기간·회계·통화·단위·출처가 맞는가. `entry ≤ buy_ceiling`, `entry ≤ close`, `stop < entry < take_profit`이며 상승여력은 종가, 손익 비율은 진입가 기준인가.
 - **추세**: `trend.date == expected_date`이고 연속 80세션의 동일 수정주가 계열로 판정했는가.
-- **일치·표시**: 부모·답글·스냅샷의 회사명·순서·상승여력·가격상태·신뢰도·집계가 같은가. 시가총액은 `display` 그대로이고, 링크·Markdown이 유효하며 메시지 길이를 코드로 확인했는가.
-- **진단**: 탐색 여섯 종류와 발견 후보가 기록됐고 최종 상태 합계가 맞으며, 보류·조회 오류·미조사를 미충족과 구별했는가. 시각·지침 해시·상태 경로·보존 여부를 기록하고 잠금·게시 직전 중복 확인을 했는가.
+- **일치·표시**: 부모·답글·스냅샷의 회사명·순서·상승여력·가격상태·신뢰도·집계가 같은가. 부모 `검증:` 줄, 빈 시장 답글, 실행 정보의 시장 상태·건수·주요 사유(사유명·건수·순서)가 집계 객체 하나에서 코드로 만들어져 서로 같은가. 시가총액은 `display` 그대로이고, 링크·Markdown이 유효하며 메시지 길이를 코드로 확인했는가.
+- **진단**: 탐색 여섯 종류와 발견 후보가 기록됐고 최종 상태 합계가 맞으며, 보류·조회 오류·미조사를 미충족과 구별했는가. 미조사는 조사 한도(그룹 번호)·실행 제한(빠른 확인/상세 검증)으로 나눠 셌고, 빠른 확인 미완료가 있으면 원인을 기록했는가. 시각·지침 해시·상태 경로·보존 여부를 기록하고 잠금·게시 직전 중복 확인을 했는가.
 
 ### 실패·재시도
 
