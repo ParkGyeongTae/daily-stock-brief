@@ -129,7 +129,7 @@
 
 **빠른 확인: 발견 후보 전체, 한도 없음**
 
-중복 확인 → 중복 제외가 아닌 전체의 시세 조회 → 중복·급등·시세 오류·추세 미충족 없는 전체의 가치·실적 조회 → 저평가 1~3단계·잠정 실적 지속성. 오류 없는 `trend.eligible == false`는 `제외: 하락 추세 완화 미충족`, 지속성 `false`는 [예외](#실적-지속성--필수)가 아니면 `제외: 실적 지속성 미충족(최신 분기 영업이익/영업현금흐름 음수)`이다. 종가 오류는 아래 복구 표를 따른다. 실행 제한 시 나눠 조회하고 끝내 못 마친 후보만 `미조사: 실행 제한(빠른 확인)`과 막힌 원인(도구 오류 원문·시간 초과 등)을 남긴다.
+중복 확인 → 중복 제외가 아닌 전체의 시세 조회 → 중복·급등·시세 오류·추세 미충족 없는 전체의 가치·실적 조회 → 저평가 1~3단계·잠정 실적 지속성. 추세 `false`·지속성 `false`·조회 오류의 판정은 아래 복구 표를 따른다. 실행 제한 시 나눠 조회하고 끝내 못 마친 후보만 `미조사: 실행 제한(빠른 확인)`과 막힌 원인(도구 오류 원문·시간 초과 등)을 남긴다.
 
 한국 리포트만으로 발견한 후보(DART 긍정 공시·기사 신호 없음)는 **신호 기간 리포트 1개 이상·목록/목표가 비교 완전·전부 `down`/`same`**일 때만 `제외: 신호 요건 미충족(목표가 유지·하향)`이다. 빈 목록·부분 조회·오류는 신호 부재가 아니다. 비교 `passed: null`·지속성 `error`/미확인·목표가 비교 `unknown`만으로 여기서 제외하지 않는다.
 
@@ -151,7 +151,7 @@
 - 한국 사전 근거: `target_raise_score` + DART 긍정 공시나 기사 신호 사실이 있으면 1점. 상향 없이 `unknown` 리포트만 있으면 0점.
 - 사전 근거는 조사 순서용이다. 최종 점수는 신호 인정 규칙으로 확정하며 한국 제목 신호도 후보별 후속 변경 점검이 필요하다. 미완료 신호부터 확인하고 불명확한 점수를 높이지 않는다.
 
-선정 수가 차도 남은 대상은 판정하거나 미조사로 남긴다. 한도 초과는 `미조사: 조사 한도(그룹 ①~③)`, 착수 후 미완료는 `미조사: 실행 제한(상세 검증)`과 원인이다. 탈락 빈자리는 남은 대상을 같은 절차로 검증한다. 후속 자료가 선행 판정을 바꾸면 해당 단계로 돌아간다. 독립 조회·검색은 도구가 지원하면 묶되 항목별로 확인하고 미조사 기업·신호 종류를 숨기지 않는다.
+선정 수가 차도 남은 대상은 판정하거나 미조사로 남긴다. 한도 초과는 해당 그룹 번호 하나로 `미조사: 조사 한도(그룹 ①)`·`(그룹 ②)`·`(그룹 ③)`, 착수 후 미완료는 `미조사: 실행 제한(상세 검증)`과 원인이다. 탈락 빈자리는 남은 대상을 같은 절차로 검증한다. 후속 자료가 선행 판정을 바꾸면 해당 단계로 돌아간다. 독립 조회·검색은 도구가 지원하면 묶되 항목별로 확인하고 미조사 기업·신호 종류를 숨기지 않는다.
 
 ### 빠른 확인의 오류 복구와 상세 검증 진입
 
@@ -193,7 +193,7 @@
 - 시장별 `발견 = 선정 + 적격 미선정 + 제외 + 보류 + 미조사`를 코드로 검증한다. 단계별 진입/통과·대표 사유별 수는 따로 집계하며 같은 후보를 같은 집계에 두 번 세지 않는다.
 - 미조사 대표 사유는 `조사 한도(그룹 번호)`·`실행 제한(빠른 확인)`·`실행 제한(상세 검증)`을 구분한다. 시장 탐색 실패는 후보 수가 아닌 검색 오류다.
 - `error`·`warnings`·`retry`의 출처·예외명·메시지를 그대로 저장한다. 200자 제한 출력은 `도구 출력(최대 200자)`로 표시하며 전체 원문이라고 쓰거나 원인을 추정하지 않는다.
-- 조회 오류는 `출처·예외 이름`별로 묶어 건수·출력 예시 1개를 남긴다(예: `Yahoo Finance: YFRateLimitError`, `ValueError: 종가 기준일 불일치`). Slack 주요 사유도 이 이름을 쓴다.
+- 조회 오류는 `출처·예외 이름`별로 묶어 건수·출력 예시 1개를 남긴다(예: `Yahoo Finance: YFRateLimitError`, `ValueError: 종가 기준일 불일치`). 조회 오류 보류의 대표 사유와 `unresolved_errors.type`에 이 이름을 쓰며, Slack에는 시장 상태 뒤에 상위 2개 유형이 자동 표시된다.
 - 상태·사유 집계는 스냅샷의 **집계 객체 하나**로 관리한다. 부모·빈 시장·실행 정보의 진단은 모두 여기서 생성한다. 주요 사유는 건수 내림차순 → 사유명 오름차순이며 메시지별로 바꾸지 않는다.
 
 시장 상태는 아래에서 **처음 해당하는 값**이다. 복수 사유는 모두 보존한다.
@@ -261,7 +261,7 @@
 
 **상세 검증: 4~5단계**
 
-4. **할인 이유**: 30일 기사·공식 발표에서 `회사명 일회성 OR 처분이익 OR 평가이익 OR 환급 OR 법인세 효과` / `티커 one-time gain OR one-time benefit OR non-recurring OR tax benefit OR refund OR impairment` 검색. 최근 4분기 이익에 일회성 이익·환급·세금 효과가 포함되면 금액·영향 확인 여부와 무관하게 PER 비교를 미확인으로 바꾼다. 해당 효과를 뺀 정상 이익 기준 기사 비교가 없으면 보류한다. 리스크 문구로 대신 통과시키지 않는다. 금융·보험 PBR은 최근 회계연도 ROE 양수(한국 `history.roe`, 미국 `roe`)·자산 부실 기사 미발견을 확인한다.
+4. **할인 이유**: 30일 기사·공식 발표에서 `회사명 일회성 OR 처분이익 OR 평가이익 OR 환급 OR 법인세 효과` / `티커 one-time gain OR one-time benefit OR non-recurring OR tax benefit OR refund OR impairment` 검색. 최근 4분기 이익에 일회성 이익·환급·세금 효과가 포함되면 금액·영향 확인 여부와 무관하게 PER 비교를 미확인으로 바꾼다. 해당 효과를 뺀 정상 이익 기준 기사 비교가 없으면 보류한다. 리스크 문구로 대신 통과시키지 않는다. 금융·보험 PBR은 ROE 양수(한국 최근 실제 회계연도 `history.roe`, 미국 Yahoo 최근 12개월 `roe`)·자산 부실 기사 미발견을 확인한다.
 5. **선택 보충**: 미확인 비교는 `회사명 밸류에이션 동종업계 PER PBR` / `티커 valuation peers historical multiple`로 30일 기사 검색. 지표 정의·실제/예상·기간·회계·평가일을 확인한다. 직전 종가 기준이 아니면 기준주가·EPS/BPS가 함께 있고 이후 실적·주식 수 변경이 없을 때만 `기사 배수 × 직전 종가 ÷ 기사 기준주가`로 보정하고 원값·보정값·전제를 기록한다. `저평가` 표현·목표가 괴리·고점 대비 하락만으로 인정하지 않는다.
 
 | 최종 판정 | 조건 |
@@ -325,7 +325,7 @@
 
 `surge_excluded == true` 또는 신호 기간 기사에서 한국 하루 15% 이상·미국 20% 이상 상승이나 상한가 확인 시 제외한다.
 
-선행 조건 통과 후보마다 회사명(가능하면 코드/티커)·30일 기간으로 **네 묶음 전부** 검색한다. 한국어/영어를 시장에 맞게 쓴다. 한국 `risk_disclosures`도 희석·규제·소송 근거로 보며 실패 시 기사만으로 판정했음을 기록한다. 미국 `target_cuts_30d`는 리스크·추정치 점검 단서이며 자체 제외 사유가 아니다. 선행 차단으로 생략하면 각 묶음에 `미수행: 선행 단계와 사유`를 남긴다.
+선행 조건 통과 후보마다 회사명(가능하면 코드/티커)·30일 기간으로 **네 묶음 전부** 검색한다. 한국어/영어를 시장에 맞게 쓴다. 한국 `risk_disclosures`도 희석·규제·소송 근거로 보며 실패 시 기사만으로 판정했음을 기록한다. 한국·미국 `target_cuts_30d`(목표가 하향)는 리스크·추정치 점검 단서이며 자체 제외 사유가 아니다. 선행 차단으로 생략하면 각 묶음에 `미수행: 선행 단계와 사유`를 남긴다.
 
 | 묶음 | 한국어 | 영어 |
 |---|---|---|
@@ -369,7 +369,7 @@
 2. 누락이 있으면 공통 시작 3단계의 상태·잠금 확인을 마치고 다시 읽는다. 부모의 기업·순서를 유지하며 이미 게시된 항목은 건너뛴다.
 3. 채널·날짜·부모 원문이 일치하는 스냅샷에서 원래 저평가·지속성·추세·`confidence`, 가격 규칙 버전·`levels()` 전체 입력·목표가 값/미확인을 복원한다. 스냅샷이 없으면 원래 세션·게시된 답글에서 **기준 시각 이전 모든 입력·판정**을 확인한 경우만 복원한다. 새 시세·목표가·EPS/BPS·배수나 부모 상승여력 역산으로 대체하지 않는다.
 4. **미게시 기업 답글만** 원래 기준 시각·30일 범위로 위험 네 묶음을 재점검한다. 신규 탐색 금지의 제한적 예외이며 다른 원래 입력은 새 조사로 보충하지 않는다. 빈 시장·실행 정보만 복구하면 위험 재점검도 하지 않는다.
-5. 같은 규칙 버전의 `levels()`로 재계산해 저장 가격·상태·부모 상승여력과 대조한다. 가격 기간은 부모 날짜 + 28일, 이전 규칙으로 게시된 신뢰도 낮음 기업은 원래 조건으로 검증한다.
+5. 같은 규칙 버전의 `levels()`로 재계산해 저장 가격·상태·부모 상승여력과 대조한다. 가격 기간은 부모 날짜 + 28일이다.
 6. 아래 실패 조건이면 해당 위치에 `회사명 — 보류: 사유`만 쓴다. 대체 기업·가격 블록은 넣지 않는다.
 7. 전송 직전 채널·스레드를 다시 읽고 누락분만 게시한다. 실행 정보는 원래 진단·사용량을 복원해 마지막에 보낸다. [실패·재시도](#실패재시도)·[종료 기록](#최종-결과)을 따른다.
 
@@ -427,7 +427,7 @@
 - 메시지마다 URL 포함 **3,000자 이하**를 코드로 확인한다. 신규 시장 답글은 각각 1개, 기업·추세·가격 블록 분할 금지. 필수 근거를 유지해 줄인 뒤 재생성·검증하며 끝내 초과하면 부모 게시 전 중단한다. 이전 분할 답글은 복구만 지원한다.
 - 표준 Markdown: `**굵게**`, `_기울임_`, `[링크](URL)`. 한국 회사명은 한글, 미국은 영문이며 부모·답글 표기/순서를 맞춘다.
 - 주가·등락률에 기준일·종가/장중/시간외를 밝히고 혼합하지 않는다. 매매 권유·주가/실적 예측은 금지다. 전망은 주체를 밝힌 인용만 허용하며 가격 움직임을 펀더멘털 근거로 쓰지 않는다.
-- 빈 시장은 헤더 아래 `_이번 조사에서 선정한 기업 없음_`과 진단을 쓴다. 부모는 `검증: 시장 상태 · 주요 사유 최대 2개(건수)` 한 줄, 답글은 아래 [빈 시장 답글](#기업-답글) 형식이다. 발견 0개는 탐색 정상 완료 여부를 밝힌다. 시장 전체에 적격 기업이 없다는 뜻으로 쓰지 않는다.
+- 빈 시장은 헤더 아래 `_이번 조사에서 선정한 기업 없음_`과 진단을 쓴다. 부모는 `검증: 시장 상태 · 주요 사유 최대 2개(건수)` 한 줄(조회 오류면 상태 뒤 괄호에 오류 유형·건수), 답글은 아래 [빈 시장 답글](#기업-답글) 형식이다. 발견 0개는 탐색 정상 완료 여부를 밝힌다. 시장 전체에 적격 기업이 없다는 뜻으로 쓰지 않는다.
 
 ### 부모 메시지
 
@@ -458,12 +458,12 @@ _수집 기간: 10/26 07:00 ~ 11/02 07:00 KST_
 🇰🇷 **한국 기업**
 **1. 회사명 (005930)**
 _회사 설명 1줄 · 시가총액 12.3조 원 (네이버, 11/2 07:02 KST 조회)_
-• 최근 무슨 일이 있었나
-• 저평가 비교 수치와 실적·현금 창출 근거
-• 리스크 또는 다음에 확인할 것
+• 최근 무슨 일이 있었나 (근거가 🔗 대표 링크와 같으면 링크 생략)
+• 저평가 비교 수치와 실적·현금 창출 근거 ([네이버 금융](https://finance.naver.com/item/main.naver?code=005930), 11/2 조회)
+• 리스크 또는 다음에 확인할 것 ([매체명](https://원문링크), 10/28)
 📊 추세: 수정종가 71,200원 ≥ 60일 평균 68,450원 · 60일 평균 68,450원 ≥ 20거래일 전 평균 66,900원 (Yahoo Finance, 10/30 기준)
 💵 가격 (10/30 종가 71,200원, 네이버 · 기간 11/30까지)
-• 목표주가 90,000원 (A증권, 10/30 상향 · 상승여력 26%)
+• 목표주가 90,000원 (A증권, 10/30 상향, [네이버 리포트](https://m.stock.naver.com/research/company/12345) · 상승여력 26%)
 • 가치기준 매수상한 64,000원 (최근 4분기 EPS 8,000원 × 동종 PER 중앙값 10배 = 80,000원 · [네이버 금융](https://finance.naver.com/item/main.naver?code=005930) 11/2 조회 · 안전마진 20%)
 • 수익실현 74,200원 (+16%)
 • 진입 64,000원 이하 (진입대기)
@@ -476,13 +476,14 @@ _회사 설명 1줄 · 시가총액 12.3조 원 (네이버, 11/2 07:02 KST 조�
 | 제목 | 확인한 한국 6자리 코드/미국 티커. 식별자·대상 시장 상장 미확인은 선정 불가 |
 | 설명 1줄 | 만드는/파는 것 한 문장 + `market_cap.display` 그대로(출처·조회 시각 포함). 조회 시각을 종가일로 해석하거나 실패값을 기사·주식 수 계산으로 보충하지 않음 |
 | 포인트 1: 사건 | 인정 신호의 사건일·수치·비교 기준. 실적은 지표/기간/실제/컨센서스, 가이던스는 기존/새 값, 자사주는 결정/이행/신탁 구분. 제목 인정 공시는 `공시 제목 확인`·신규 결정/체결·접수일·DART 링크만 쓰고 미확인 세부 수치·매입 완료·매출/이익 기여 추정 금지 |
-| 포인트 2: 저평가·지속성 | 자사/비교 배수·표본 수·지표/기간별 실제 이익/현금 수치. 제공값은 `[네이버 금융](urls.display)`/`[Yahoo Finance](urls.display)`·조회일, 기사는 발행일·링크. 보정값 표시 |
+| 포인트 2: 저평가·지속성 | 자사/비교 배수·표본 수·지표/기간별 실제 이익/현금 수치. 제공값은 `[네이버 금융](urls.display)`/`[Yahoo Finance](urls.display)`·조회일. 보정값 표시 |
 | 포인트 3: 위험·다음 확인 | 기사 약점·반론 우선, 없으면 판단을 바꿀 조건. 일정은 확인한 것만 표시. 제외·보류를 위험 문구로 대신 통과시키지 않음 |
+| 포인트 인용 링크 | 포인트에서 기사·공식 발표·공시·제공값을 인용하면 발행일/조회일과 `[매체명](URL)`을 문장 안에 붙이고 URL을 `point_sources`에 넣음. `(회사 발표, 11/4)`처럼 링크 없는 인용 금지. 포인트 1은 근거가 🔗 대표 링크와 같을 때만 생략 가능 |
 | 추세 | 두 조건·출처·기준일. 향후 상승 예측 금지 |
 
 투자 포인트는 **정확히 3줄, 각 한 문장**이다. 추세값 `adjusted_close`·`ma60`·`ma60_20_sessions_ago`는 종가 단위로 반올림해 표시한다.
 
-빈 시장 답글은 헤더 → 빈 섹션 문구 → `검증: 시장 상태` → `발견 n · 선정 n · 적격 미선정 n · 제외 n · 보류 n · 미조사 n` → `주요 사유: 최대 2개(건수)`를 각각 별도 줄로 쓴다. 집계 객체의 실행 정보 값과 일치해야 하며 빈 답글도 해당 시장의 게시 완료로 센다.
+빈 시장 답글은 헤더 → 빈 섹션 문구 → `검증: 시장 상태(조회 오류면 오류 유형·건수)` → `발견 n · 선정 n · 적격 미선정 n · 제외 n · 보류 n · 미조사 n` → `주요 사유: 최대 2개(건수)`를 각각 별도 줄로 쓴다. 집계 객체의 실행 정보 값과 일치해야 하며 빈 답글도 해당 시장의 게시 완료로 센다.
 
 ### 가격 블록
 
@@ -491,7 +492,7 @@ _회사 설명 1줄 · 시가총액 12.3조 원 (네이버, 11/2 07:02 KST 조�
 | 줄 | 내용 |
 |---|---|
 | 목표주가 | 채택값·증권사·리포트 날짜·변경 유형(상향/하향/유지/최초 제시/변경 미확인)·`upside_pct`·출처. 최초 제시는 목표가만 허용, 신호 점수 없음 |
-| 가치기준 매수상한 | `buy_ceiling`·채택 EPS/BPS·비교 중앙값·대상 기간·출처/확인일·안전마진 20%. 여러 기준가치 최솟값이면 명시, 전체 산식은 기록에 보존 |
+| 가치기준 매수상한 | `buy_ceiling`·채택 EPS/BPS·비교 중앙값·대상 기간·출처/확인일·안전마진 20%. 여러 기준가치 최솟값이면 명시, 전체 산식은 기록에 보존. 목표가가 더 낮아 보수 기준가치가 되면(`target_capped`) 생성 코드가 그 값을 덧붙이므로 `basis_detail`에 중복 기재하지 않음 |
 | 수익실현 | `take_profit`·`(+N%)` = `take_profit_pct` |
 | 진입 | `entry` + `이하` + `entry_status`. 종가 복사 금지 |
 | 손절 | `stop`·`(−8% 기준·호가 올림)`. 반올림 뒤 실제 비율을 정확히 −8%로 표현 금지 |
@@ -522,7 +523,7 @@ _회사 설명 1줄 · 시가총액 12.3조 원 (네이버, 11/2 07:02 KST 조�
 
 ```
 ⚙️ 실행 정보
-• 조사: 한국 [시장 상태] · 미국 [시장 상태]
+• 조사: 한국 [시장 상태(조회 오류면 오류 유형·건수)] · 미국 [시장 상태]
 • 한국: 발견 n · 선정 n · 적격 미선정 n · 제외 n · 보류 n · 미조사 n
 • 미국: 발견 n · 선정 n · 적격 미선정 n · 제외 n · 보류 n · 미조사 n
 • 주요 사유: 시장별 최대 2개와 건수 또는 탐색 완료·발견 0개
@@ -540,7 +541,7 @@ _회사 설명 1줄 · 시가총액 12.3조 원 (네이버, 11/2 07:02 KST 조�
 게시 후 메시지는 수정하지 않는다. `validate_snapshot()`이 집계 합계·순위·가격 재계산·추세 산술·메시지 일치·문자 수를 검사하므로, 통과 후에는 검증기가 보지 않는 아래 항목을 **실제 근거와 대조**한다.
 
 - **적격 판정**: 각 단계 `통과`가 근거와 맞는지(비교 가능성·일회성·금융 건전성·지속성 등급·급등·추세·상승여력·신호 점수), 지속성 `false`로 제외한 후보에 새 결산기 예외가 없었는지.
-- **사실·내용**: 설명 1줄·포인트 3줄의 수치/인용 출처·날짜, 권유/예측 금지. 제목 공시는 완전 조회·후속 변경·접수일/링크/확인 방식, 소송·규제는 당사자/내용/단계/영향 대조.
+- **사실·내용**: 설명 1줄·포인트 3줄의 수치/인용 출처·날짜, 권유/예측 금지. `point_sources`가 빈 포인트에 외부 인용이 정말 없는지. 제목 공시는 완전 조회·후속 변경·접수일/링크/확인 방식, 소송·규제는 당사자/내용/단계/영향 대조.
 - **가격 입력**: EPS/BPS·배수의 기간/회계/통화/단위/출처 정합성, `basis_detail`·`target_reference`가 가격 입력과 같은지, 시가총액 `display`·링크/Markdown.
 - **조사·운영 기록**: 여섯 종류 탐색 근거·미조사 원인, 오류 유형·보류/미충족 구분. 실행 시각·지침 해시·상태 경로/보존·잠금·전송 직전 중복 확인.
 
@@ -1999,15 +2000,15 @@ EOF
 | 위치 | 필수 구조 |
 |---|---|
 | 최상위 | `schema_version`, `validation_version`, `brief_date`, `channel_id`, `candidates`(전체 후보 목록), `market_diagnostics`, `aggregation`, `messages` |
-| 모든 후보 | `market`(`KR`/`US`), `code`(병합한 식별자, 미확인은 회사명 임시 키), `name`, `status`(최종 상태 표의 값), `reason`(대표 사유, 적격이면 `null`), `additional_reasons`(목록), `confidence`, `stages` |
+| 모든 후보 | `market`(`KR`/`US`), `code`(병합한 식별자, 미확인은 회사명 임시 키), `name`, `status`(최종 상태 표의 값), `reason`(대표 사유에서 `제외: `·`보류: `·`미조사: ` 접두어를 뺀 문자열, 적격이면 `null`), `additional_reasons`(목록), `confidence`, `stages` |
 | 후보의 `stages` | `중복`, `신호`, `시세`, `저평가`, `실적 지속성`, `위험`, `추세`, `진입가`, `기준 시각` 각각에 `status`(통과/미충족/미확인/오류/미수행)와 `evidence`(근거·조회 시각·검색어 또는 미수행 사유를 담은 비어 있지 않은 목록) |
 | 선정·적격 미선정 후보 추가 | `valuation_grade`, `sustainability_grade`, `signal_score`, `duplicate_clear: true`, `surge_clear: true`, `risk_checks`(위험 네 묶음 각각에 `complete`, `clear`, `evidence`), `quote`, `trend`, `valuation`, `price_inputs`, `prices`, `asof` |
 | `quote`·`trend` | `quote`는 최종 채택한 `close`, `date`, `expected_date`, `source`. 기사 복구 시에도 같은 형식이며 원래 오류는 원시 기록에 보존. `trend`는 시세 스크립트 출력 전체를 보존 |
 | `valuation` | `company_kind`(`general`/`financial`/`reit`), 제공 `eps` 값, 최종 `comparisons`(각각 `metric`, `kind`, `passed`, 통과 시 `valuation_basis`), 금융은 `pbr_health_verified`. `kind`는 `동종 중앙값` 또는 `자사 최근 3개 회계연도 중앙값`이며 후자는 PER만 허용. 기사 보완도 이 종류로 병합하고 변경 근거와 원래 출력은 따로 보존 |
 | `price_inputs`·`prices` | `price_inputs`는 `price`, `target`(미확인은 `null`), `market`, `brief_date`, `valuation_bases`. 통과한 주 지표 비교의 입력을 `comparisons` 순서대로 모두 포함. `prices`는 부록 A `levels()`의 전체 반환값 |
 | `asof` | `시세`, `추세`, `EPS/BPS`, `비교배수`, `실적`, `신호`, `위험`, 목표가 확인 시 `목표가`를 키로 둔다. 각각 `compatible`, `retrieved_at`, `available_at`(시간대 있는 공개 시각) 또는 `available_date`, `evidence`를 기록. 여러 자료를 쓴 항목의 `evidence`에는 자료별 공개·갱신 시각과 기준 시각 적합성의 근거를 모두 담는다 |
-| 선정 후보의 `display` | `description`(회사 설명·`market_cap.display` 그대로), `selection_reason`, `points`(3개 한 줄 문장 목록), `basis_detail`(채택 EPS/BPS·비교배수·대상 기간·출처·확인일), `signal_link`, 목표가 있으면 `target_reference`(증권사·리포트 날짜·확인된 변경 유형·출처) |
-| `market_diagnostics` | `KR`·`US` 각각 `discovery`와 `unresolved_errors`. `discovery`는 신호 표의 여섯 종류를 키로 하며 각각 `status`(`complete`/`error`/`missing`), `evidence`(검색어·기간·시각·결과·오류 목록). 스크립트로 충족했으면 그 조회 근거를 기록. `unresolved_errors`는 판정에 필요한 미해결 오류의 유형명·원문 목록이며 해결된 재시도 오류는 넣지 않음 |
+| 선정 후보의 `display` | `description`(회사 설명·`market_cap.display` 그대로), `selection_reason`, `points`(3개 한 줄 문장 목록), `point_sources`(포인트별 인용 URL 목록 3개, 각 URL은 해당 포인트에 `[이름](URL)`으로 포함, 포인트 2는 비울 수 없음), `basis_detail`(채택 EPS/BPS·비교배수·대상 기간·출처·확인일), `signal_link`, 목표가 있으면 `target_reference`(증권사·리포트 날짜·확인된 변경 유형·출처) |
+| `market_diagnostics` | `KR`·`US` 각각 `discovery`와 `unresolved_errors`. `discovery`는 신호 표의 여섯 종류를 키로 하며 각각 `status`(`complete`/`error`/`missing`), `evidence`(검색어·기간·시각·결과·오류 목록). 스크립트로 충족했으면 그 조회 근거를 기록. `unresolved_errors`는 판정에 필요한 미해결 오류를 `출처·예외 이름`별로 묶은 목록이며 각각 `type`(예: `Yahoo Finance: YFRateLimitError`), `count`(영향 조회 건수, 양의 정수), `example`(원문 예시 1개). 해결된 재시도 오류는 넣지 않음. 상위 2개 유형은 Slack `검증:`·실행 정보의 시장 상태 뒤에 표시됨 |
 | `aggregation`·`messages` | 검증기가 생성한 집계 객체와 메시지를 그대로 저장. `messages`는 `parent`(문자열), `KR`·`US`(답글 문자열 목록), `execution_diagnostics`(실행 정보의 확정 진단 부분) |
 
 ```python
@@ -2147,6 +2148,11 @@ def aggregate_snapshot(s):
         for item in diag['discovery'].values():
             require(item['status'] in ('complete', 'error', 'missing') and bool(item['evidence']), '탐색 상태·근거 누락')
         require(isinstance(diag['unresolved_errors'], list), '미해결 오류 목록 필요')
+        errors = Counter()
+        for e in diag['unresolved_errors']:
+            text_value(e['type']); text_value(e['example'])
+            require(type(e['count']) is int and e['count'] > 0, '미해결 오류 건수 오류')
+            errors[e['type']] += e['count']
         state_reasons = []
         if any(x['status'] != 'complete' for x in diag['discovery'].values()) or any(
                 c['status'] == '미조사' and c['reason'] != '조사 한도(그룹 ③)' for c in cs):
@@ -2157,10 +2163,17 @@ def aggregate_snapshot(s):
             state_reasons.append('근거 미확인')
         result[market] = {'discovered': len(cs), 'counts': counts,
             'reasons': dict(sorted(reasons.items(), key=lambda kv: (-kv[1], kv[0]))),
+            'errors': dict(sorted(errors.items(), key=lambda kv: (-kv[1], kv[0]))),
             'stages': {k: {'entered': sum(c['stages'][k]['status'] != '미수행' for c in cs),
                             'passed': sum(c['stages'][k]['status'] == '통과' for c in cs)} for k in STAGES},
             'state': state_reasons[0] if state_reasons else '조사 완료', 'state_reasons': state_reasons}
     return result
+
+
+def state_label(a):
+    # 조회 오류 상태에는 미해결 오류 유형(출처·예외 이름) 최대 2개와 건수를 붙인다.
+    top = list(a['errors'].items())[:2]
+    return a['state'] + (f'({" · ".join(f"{k} {v}건" for k, v in top)})' if top else '')
 
 
 def diagnostic_lines(a):
@@ -2170,7 +2183,7 @@ def diagnostic_lines(a):
     reason = ' · '.join(f'{k}({v})' for k, v in top) if top else (
         '탐색 완료·발견 0개' if not a['discovered'] and a['state'] == '조사 완료' else
         '탐색 미완료·발견 0개' if not a['discovered'] else '제외·보류·미조사 없음')
-    return f'검증: {a["state"]} · {reason}', counts, f'주요 사유: {reason}'
+    return f'검증: {state_label(a)} · {reason}', counts, f'주요 사유: {reason}'
 
 
 def month_day(value):
@@ -2187,6 +2200,12 @@ def company_section(c):
         text_value(d[key])
     require(isinstance(d['points'], list) and len(d['points']) == 3, '투자 포인트 3개 필요')
     require(all(isinstance(x, str) and x.strip() and '\n' not in x for x in d['points']), '포인트는 각각 한 줄')
+    sources = d['point_sources']
+    require(isinstance(sources, list) and len(sources) == 3 and all(isinstance(x, list) for x in sources),
+            '포인트별 인용 출처 목록 3개 필요')
+    require(bool(sources[1]), '저평가·지속성 포인트의 출처 필요')
+    for point, urls in zip(d['points'], sources):
+        require(all(f']({text_value(url)})' in point for url in urls), '포인트 인용 출처 링크 누락')
     title = f'**1. {c["name"]} ({c["code"]})**'
     t = c['trend']
     a, b, prev = (money(t[k], m) for k in ('adjusted_close', 'ma60', 'ma60_20_sessions_ago'))
@@ -2196,7 +2215,9 @@ def company_section(c):
     price = [f'💵 가격 ({month_day(q["date"])} 종가 {money(q["close"], m)}, {text_value(q["source"])} · 기간 {p["until"]}까지)']
     price.append('• 목표주가 미확인' if target is None else
         f'• 목표주가 {money(target, m)} ({text_value(d["target_reference"])} · 상승여력 {p["upside_pct"]}%)')
-    price.append(f'• 가치기준 매수상한 {money(p["buy_ceiling"], m)} ({d["basis_detail"]} · 안전마진 20%)')
+    # 목표가가 기준가치보다 낮으면 매수상한은 목표가 기준이므로 산식만 보고 오해하지 않게 밝힌다.
+    capped = f' · 목표가가 더 낮아 보수 기준가치 {money(p["conservative_value"], m)} 적용' if p['target_capped'] else ''
+    price.append(f'• 가치기준 매수상한 {money(p["buy_ceiling"], m)} ({d["basis_detail"]}{capped} · 안전마진 20%)')
     price.append(f'• 수익실현 {money(p["take_profit"], m)} (+{p["take_profit_pct"]}%)')
     price.append(f'• 진입 {money(p["entry"], m)} 이하 ({p["entry_status"]})')
     price.append(f'• 손절 {money(p["stop"], m)} (−8% 기준·호가 올림)')
@@ -2225,14 +2246,14 @@ def render_messages(s, aggregation):
             messages[market] = [header + '\n' + company_section(c)]
         else:
             parent.extend(['_이번 조사에서 선정한 기업 없음_', verification])
-            messages[market] = ['\n'.join([header, '_이번 조사에서 선정한 기업 없음_', f'검증: {a["state"]}', counts, reasons])]
+            messages[market] = ['\n'.join([header, '_이번 조사에서 선정한 기업 없음_', f'검증: {state_label(a)}', counts, reasons])]
         execution.append(f'• {label}: {counts}')
     any_selected = any(c['status'] == '선정' for c in s['candidates'])
     parent.extend(['', '🧵 투자 포인트와 매매가는 스레드에서 확인 · 진입은 가치기준 매수상한·종가 중 낮은 값' if any_selected
                    else '🧵 조사 범위·보류 사유와 실행 정보는 스레드에서 확인'])
     messages['parent'] = '\n'.join(parent)
     messages['execution_diagnostics'] = '\n'.join([
-        f'• 조사: 한국 {aggregation["KR"]["state"]} · 미국 {aggregation["US"]["state"]}', *execution,
+        f'• 조사: 한국 {state_label(aggregation["KR"])} · 미국 {state_label(aggregation["US"])}', *execution,
         '• 주요 사유: ' + ' · '.join(LABELS[m][1] + ' ' + diagnostic_lines(aggregation[m])[2].removeprefix('주요 사유: ') for m in LABELS)])
     return messages
 
