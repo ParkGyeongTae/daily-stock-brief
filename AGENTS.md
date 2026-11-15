@@ -1,5 +1,7 @@
 # Daily Stock Brief
 
+이 프롬프트는 **1~4주 보유를 목표로 하는 스윙투자를 위한 종목 발굴·검증·브리핑 지침**이다. 최근 긍정 신호와 가격 추세를 확인하고, 재무·가치평가·위험 조건을 함께 검증해 매매 참고 정보를 제공한다. 리포트 목표주가를 1~4주 내 도달 예상 가격으로 해석하지 않는다.
+
 이 프롬프트는 항상 Claude Code 루틴 https://claude.ai/code/routines/trig_015uzRmBpNuUSbR8Ux2p9jxK 에서 실행한다.
 
 매일 07:00 KST에 한국·미국 상장 기업을 시장별 최대 1개 선정해 Slack `#daily-stock-brief`(`C0CDFHG8PL7`)에 부모·스레드로 바로 게시한다. 사람의 사전 검토 없이 투자 판단에 참고되므로 **선정 수보다 정확성을 우선**한다.
@@ -145,7 +147,7 @@
 
 한국 잠정 지속성은 [DART 우선 규칙](#실적-지속성--필수)을 적용한다. 금융·보험은 일반기업용 `sustainability`로 통과·제외하지 않고 지속성 미확인으로 둔다.
 
-그룹 안에서는 **스크립트 저평가 등급 → 잠정 지속성 등급 → 신호 사전 근거 → 최근 확인 사건일** 내림차순, 마지막은 **코드/티커 오름차순**이다. 등급·사건일 미확인은 마지막이다.
+그룹 안에서는 **스크립트 저평가 등급 → 잠정 지속성 등급 → 신호 사전 근거 → 최근 확인 사건일** 내림차순, 마지막은 **코드/티커 오름차순**이다. 저평가 등급은 아래 PER 비교 조합 규칙으로 정하며, 한 비교의 실패만으로 다른 비교의 통과를 무효화하지 않는다. 등급·사건일 미확인은 마지막이다.
 
 - 미국 사전 근거: 스크립트 EPS 상회 2점 + `target_raise_score`. 기사만으로 발견한 후보는 0점.
 - 한국 사전 근거: `target_raise_score` + DART 긍정 공시나 기사 신호 사실이 있으면 1점. 상향 없이 `unknown` 리포트만 있으면 0점.
@@ -182,7 +184,7 @@
 |---|---|
 | 선정 | 적격이며 시장 최종 1위 |
 | 적격 미선정 | 적격이지만 순위에서 밀림 |
-| 제외 | 확인된 중복·신호 미충족·급등·하락 추세 완화 미충족·저평가 미충족(EPS 0 이하 포함)·리츠·실적 지속성 미충족·위험 제외·상승여력 미달 |
+| 제외 | 확인된 중복·신호 미충족·급등·하락 추세 완화 미충족·저평가 미충족(EPS 0 이하 포함)·리츠·실적 지속성 미충족·위험 제외 |
 | 보류 | 신호 날짜·실제치/컨센서스·EPS/BPS·배수 정합성·현금흐름 등 필수 근거 미확인 또는 조회 오류 |
 | 미조사 | 한도·실행 제한으로 필요한 조사 미착수/미완료 |
 
@@ -256,7 +258,7 @@
 **빠른 확인: 1~3단계**
 
 1. **주 지표**: 일반 기업 PER, 금융·보험 PER과 동종 PBR. 일반 기업 PBR은 참고다. 제공사 업종·회사 소개로 리츠 확인 시 `제외: 리츠(저평가 판정 미지원)`(FFO 비교 미지원). 공통으로 EPS 0 이하는 `제외: 저평가 미충족(EPS 0 이하로 PER 근거 없음)`, EPS 자체 미확인·조회 실패는 보류다.
-2. **잠정 판정**: 주 지표 비교의 `passed: true/false`를 모은다. `null`·표본 부족은 미확인이다. 3단계까지 점검한 뒤 확인된 필수 비교가 하나라도 `false`면 제외한다. 다른 통과로 상쇄하지 않는다.
+2. **잠정 판정**: 동종·자사 과거 PER 두 비교의 `passed`를 모두 기록한다. `null`·표본 부족·누락은 미확인이며, 누락 비교도 `passed: null`과 사유를 남긴다. 3단계까지 점검한 뒤 둘 다 `true`면 잠정 등급 2, 하나만 `true`면 다른 비교가 `false`/`null`이어도 잠정 등급 1로 조사한다. 둘 다 `false`면 `제외: 저평가 미충족(PER 두 비교 모두 실패)`, 통과 없이 미확인 비교가 남으면 저평가 미확인으로 그룹 ③에 둔다. 금융·보험의 동종 PBR은 별도 필수로, `false`면 PER 통과와 무관하게 제외하고 `null`이면 보완한다. 일반 기업 참고 PBR 실패는 제외 사유가 아니다.
 3. **비교 가능성**: 할인율 50% 이상은 스크립트가 `null` 처리한다. 명백히 다른 사업(지주사·적자 회복기 등)이 중앙값을 좌우하면 통과/실패와 무관하게 미확인으로 바꾼다. 과거 연간 EPS가 최근 4분기 EPS의 절반 미만·미확인이어도 과거 비교 미확인이다. 종목·연도 일부를 빼 재계산하거나 50% 기준을 바꾸지 않는다.
 
 **상세 검증: 4~5단계**
@@ -267,12 +269,12 @@
 | 최종 판정 | 조건 |
 |---|---|
 | 등급 2 | PER 동종·자사 과거 모두 통과 |
-| 등급 1 | PER 둘 중 하나만 확인·통과 |
+| 등급 1 | PER 둘 중 하나만 통과. 다른 비교의 실패·미확인을 모두 기록하며, 실패 하나만으로 제외하지 않음 |
 | 금융 추가 필수 | 동종 PBR 통과·ROE 양수·자산 건전성 확인. PBR은 PER을 대신하지 않음 |
-| 제외 | 확인된 필수 비교 하나라도 실패. 일반 기업 참고 PBR 실패는 제외 사유 아님 |
-| 보류 | 주 지표 비교 전부 미확인, 금융 PBR/ROE/건전성 미확인, 할인 이유 점검 미완료, 최상위 조회 실패 |
+| 제외 | PER 두 비교 모두 실패 또는 금융·보험의 동종 PBR 실패. 일반 기업 참고 PBR 실패는 제외 사유 아님 |
+| 보류 | PER 통과 없이 하나 이상 미확인(실패+미확인 포함), 금융 PBR/ROE/건전성 미확인, 할인 이유 점검 미완료, 최상위 조회 실패 |
 
-등급은 비교 가능성·할인 이유까지 통과한 최종 값이다. 부분 비교·지속성 오류의 보완은 [오류 복구 표](#빠른-확인의-오류-복구와-상세-검증-진입)를 따른다.
+등급은 비교 가능성·할인 이유까지 통과한 최종 값이다. 후속 점검으로 비교 판정이 바뀌면 두 비교 조합과 등급을 다시 판정한다. 통과하지 못한 비교의 수치·사유를 숨기거나 통과 비교만 남기지 않는다. 부분 비교·지속성 오류의 보완은 [오류 복구 표](#빠른-확인의-오류-복구와-상세-검증-진입)를 따른다.
 
 ### 가치기준 진입가 — 필수
 
@@ -351,7 +353,7 @@
 
 ### 상승여력과 선정 순서
 
-상승여력 `목표가 ÷ 직전 종가 − 1`은 보조 지표다. 목표가 확인 시 `levels().upside_eligible == false`(15% 미만)이면 제외한다. 목표가 미확인도 여섯 필수 조건 통과 시 같은 후보군에서 비교한다. 상승여력 가점·총점은 쓰지 않으며 저평가 등급·지속성 등급·신호 점수를 따로 저장한다.
+상승여력 `목표가 ÷ 직전 종가 − 1`은 장기 목표가와 종가의 차이를 보여주는 보조 지표다. 상승여력의 크기·부호만으로 제외·보류하지 않으며, 목표가 미확인도 여섯 필수 조건 통과 시 같은 후보군에서 비교한다. 리포트 목표가는 1~4주 안의 수익실현 가능성을 검증하는 값으로 쓰지 않는다. 목표가의 보수 기준가치 상한 반영은 [진입가 규칙](#가치기준-진입가--필수)대로 유지한다. 상승여력 가점·총점은 쓰지 않으며 저평가 등급·지속성 등급·신호 점수를 따로 저장한다.
 
 시장별로 다음 순서로 비교한다.
 
@@ -369,11 +371,11 @@
 2. 누락이 있으면 공통 시작 3단계의 상태·잠금 확인을 마치고 다시 읽는다. 부모의 기업·순서를 유지하며 이미 게시된 항목은 건너뛴다.
 3. 채널·날짜·부모 원문이 일치하는 스냅샷에서 원래 저평가·지속성·추세·`confidence`, 가격 규칙 버전·`levels()` 전체 입력·목표가 값/미확인을 복원한다. 스냅샷이 없으면 원래 세션·게시된 답글에서 **기준 시각 이전 모든 입력·판정**을 확인한 경우만 복원한다. 새 시세·목표가·EPS/BPS·배수나 부모 상승여력 역산으로 대체하지 않는다.
 4. **미게시 기업 답글만** 원래 기준 시각·30일 범위로 위험 네 묶음을 재점검한다. 신규 탐색 금지의 제한적 예외이며 다른 원래 입력은 새 조사로 보충하지 않는다. 빈 시장·실행 정보만 복구하면 위험 재점검도 하지 않는다.
-5. 같은 규칙 버전의 `levels()`로 재계산해 저장 가격·상태·부모 상승여력과 대조한다. 가격 기간은 부모 날짜 + 28일이다.
+5. 저장된 가격 규칙 버전의 `levels()`를 해당 실행의 지침 기록·Git 커밋에서 복원해 재계산하고 저장 가격·상태·부모 상승여력과 대조한다. 가격 기간은 부모 날짜 + 28일이다. 신규 선정의 완화된 PER·상승여력 규칙을 과거 판정에 소급 적용하지 않는다.
 6. 아래 실패 조건이면 해당 위치에 `회사명 — 보류: 사유`만 쓴다. 대체 기업·가격 블록은 넣지 않는다.
 7. 전송 직전 채널·스레드를 다시 읽고 누락분만 게시한다. 실행 정보는 원래 진단·사용량을 복원해 마지막에 보낸다. [실패·재시도](#실패재시도)·[종료 기록](#최종-결과)을 따른다.
 
-복구 실패 조건: 입력·판정 복원 불가, `value-entry-v1`이 아닌 이전 가격 방식, 재계산 불일치, 원래 기준 시각의 필수 조건·위험 재점검 미통과. 복구 중 기준 시각 **이후** 제외·보류 근거를 별도로 확인해도 보류 문구를 쓰고 원래 판정과 구분해 기록한다.
+복구 실패 조건: 입력·판정·원래 계산 코드 복원 불가, `value-entry-v1`·`value-entry-v2` 이외의 가격 방식, 재계산 불일치, 원래 기준 시각의 필수 조건·위험 재점검 미통과. 복구 중 기준 시각 **이후** 제외·보류 근거를 별도로 확인해도 보류 문구를 쓰고 원래 판정과 구분해 기록한다.
 
 빈 시장의 원래 진단 복원 불가는 `조사 상태: 원래 조사 기록 복원 불가`로 쓰고 건수를 추정하지 않는다. 이전 검증 버전·필드 누락을 이유로 새 조사로 덮어쓰거나 부모를 재생성하지 않는다.
 
@@ -390,7 +392,7 @@
 | 파일 | 저장 규칙 |
 |---|---|
 | `runs/YYYY-MM-DD/실행ID.json` | 후보·검색·오류를 단계마다 저장. 선정 0개·게시 실패·재실행도 보존 |
-| `YYYY-MM-DD.json` | 부모 전송 전 UTF-8 스냅샷. `schema_version: brief-state-v2`, `validation_version: brief-check-v2`. 저장·재검증은 [생성 절차](#메시지-생성과-검증)를 따른다. 기존 부모에 연결된 스냅샷을 새 조사로 덮어쓰지 않음 |
+| `YYYY-MM-DD.json` | 부모 전송 전 UTF-8 스냅샷. `schema_version: brief-state-v2`, `validation_version: brief-check-v3`. 저장·재검증은 [생성 절차](#메시지-생성과-검증)를 따른다. 기존 부모에 연결된 스냅샷을 새 조사로 덮어쓰지 않음 |
 
 가격·반올림 전 비율은 소수 문자열, 표시 정수 퍼센트·건수는 코드 반환형, 날짜는 `YYYY-MM-DD`, 시각은 시간대·초 포함 ISO 8601을 쓴다.
 
@@ -477,7 +479,7 @@ _10/30 종가 71,200원 (네이버) 기준 · 11/30까지 유효_
 | 제목 | 확인한 한국 6자리 코드/미국 티커. 식별자·대상 시장 상장 미확인은 선정 불가 |
 | 설명 1줄 | 만드는/파는 것 한 문장 + `market_cap.display` 그대로(출처·조회 시각 포함). 조회 시각을 종가일로 해석하거나 실패값을 기사·주식 수 계산으로 보충하지 않음 |
 | 포인트 1: 신호 | 인정 신호의 사건일·수치·비교 기준. 실적은 지표/기간/실제/컨센서스, 가이던스는 기존/새 값, 자사주는 결정/이행/신탁 구분. 제목 인정 공시는 `공시 제목 확인`·신규 결정/체결·접수일·DART 링크만 쓰고 미확인 세부 수치·매입 완료·매출/이익 기여 추정 금지 |
-| 포인트 2: 저평가·실적 | 자사/비교 배수·표본 수·지표/기간별 실제 이익/현금 수치. 제공값은 `[네이버 금융](urls.display)`/`[Yahoo Finance](urls.display)`·조회일. 보정값 표시 |
+| 포인트 2: 저평가·실적 | 자사/비교 배수·표본 수·지표/기간별 실제 이익/현금 수치. PER 한 비교만 통과하면 다른 비교의 실패·미확인과 사유도 짧게 표시. 제공값은 `[네이버 금융](urls.display)`/`[Yahoo Finance](urls.display)`·조회일. 보정값 표시 |
 | 포인트 3: 리스크 | 기사 약점·반론 우선, 없으면 판단을 바꿀 조건. 일정은 확인한 것만 표시. 제외·보류를 위험 문구로 대신 통과시키지 않음 |
 | 포인트 인용 링크 | 포인트에서 기사·공식 발표·공시·제공값을 인용하면 발행일/조회일과 `[매체명](URL)`을 문장 안에 붙이고 URL을 `point_sources`에 넣음. `(회사 발표, 11/4)`처럼 링크 없는 인용 금지. 포인트 1은 근거가 🔗 대표 링크와 같을 때만 생략 가능 |
 | 추세 | 두 조건·출처·기준일. 향후 상승 예측 금지 |
@@ -540,7 +542,7 @@ _10/30 종가 71,200원 (네이버) 기준 · 11/30까지 유효_
 
 게시 후 메시지는 수정하지 않는다. `validate_snapshot()`이 집계 합계·순위·가격 재계산·추세 산술·메시지 일치·문자 수를 검사하므로, 통과 후에는 검증기가 보지 않는 아래 항목을 **실제 근거와 대조**한다.
 
-- **적격 판정**: 각 단계 `통과`가 근거와 맞는지(비교 가능성·일회성·금융 건전성·지속성 등급·급등·추세·상승여력·신호 점수), 지속성 `false`로 제외한 후보에 새 결산기 예외가 없었는지.
+- **적격 판정**: 각 단계 `통과`가 근거와 맞는지(비교 가능성·일회성·금융 건전성·지속성 등급·급등·추세·신호 점수), 지속성 `false`로 제외한 후보에 새 결산기 예외가 없었는지. PER 한 비교만 통과한 경우 다른 비교의 실패·미확인이 기록·표시됐는지, 상승여력 크기·부호만으로 제외하지 않았는지.
 - **사실·내용**: 설명 1줄·포인트 3줄의 수치/인용 출처·날짜, 권유/예측 금지. `point_sources`가 빈 포인트에 외부 인용이 정말 없는지. 제목 공시는 완전 조회·후속 변경·접수일/링크/확인 방식, 소송·규제는 당사자/내용/단계/영향 대조.
 - **가격 입력**: EPS/BPS·배수의 기간/회계/통화/단위/출처 정합성, `basis_detail`·`target_reference`가 가격 입력과 같은지, 시가총액 `display`·링크/Markdown.
 - **조사·운영 기록**: 여섯 종류 탐색 근거·미조사 원인, 오류 유형·보류/미충족 구분. 실행 시각·지침 해시·상태 경로/보존·잠금·전송 직전 중복 확인.
@@ -594,7 +596,7 @@ from urllib.parse import urlsplit
 
 D = Decimal
 ENTRY_MARGIN = D("0.20")
-PRICE_RULE_VERSION = "value-entry-v1"
+PRICE_RULE_VERSION = "value-entry-v2"
 
 def price_value(value):
     p = D(str(value))
@@ -689,7 +691,6 @@ def levels(price, target, market, brief_date, valuation_bases):
             "stop": str(stop), "take_profit": str(tp),
             "take_profit_pct": percent((tp / entry - 1) * 100),
             "upside_raw": str(upside) if upside is not None else None,
-            "upside_eligible": target >= price * D("1.15") if target is not None else None,
             "upside_pct": percent(upside * 100) if upside is not None else None,
             "until": (brief_date + timedelta(days=28)).strftime("%-m/%-d")}
 
@@ -2004,7 +2005,7 @@ EOF
 | 후보의 `stages` | `중복`, `신호`, `시세`, `저평가`, `실적 지속성`, `위험`, `추세`, `진입가`, `기준 시각` 각각에 `status`(통과/미충족/미확인/오류/미수행)와 `evidence`(근거·조회 시각·검색어 또는 미수행 사유를 담은 비어 있지 않은 목록) |
 | 선정·적격 미선정 후보 추가 | `valuation_grade`, `sustainability_grade`, `signal_score`, `duplicate_clear: true`, `surge_clear: true`, `risk_checks`(위험 네 묶음 각각에 `complete`, `clear`, `evidence`), `quote`, `trend`, `valuation`, `price_inputs`, `prices`, `asof` |
 | `quote`·`trend` | `quote`는 최종 채택한 `close`, `date`, `expected_date`, `source`. 기사 복구 시에도 같은 형식이며 원래 오류는 원시 기록에 보존. `trend`는 시세 스크립트 출력 전체를 보존 |
-| `valuation` | `company_kind`(`general`/`financial`/`reit`), 제공 `eps` 값, 최종 `comparisons`(각각 `metric`, `kind`, `passed`, 통과 시 `valuation_basis`), 금융은 `pbr_health_verified`. `kind`는 `동종 중앙값` 또는 `자사 최근 3개 회계연도 중앙값`이며 후자는 PER만 허용. 기사 보완도 이 종류로 병합하고 변경 근거와 원래 출력은 따로 보존 |
+| `valuation` | `company_kind`(`general`/`financial`/`reit`), 제공 `eps` 값, 최종 `comparisons`(각각 `metric`, `kind`, `passed`, 통과 시 `valuation_basis`), 금융은 `pbr_health_verified`. 동종·자사 과거 PER 두 비교 모두 필수이며 실패·미확인도 생략하지 않음. `kind`는 `동종 중앙값` 또는 `자사 최근 3개 회계연도 중앙값`이며 후자는 PER만 허용. 누락 비교는 `passed: null`과 사유를 기록. 기사 보완도 이 종류로 병합하고 변경 근거와 원래 출력은 따로 보존 |
 | `price_inputs`·`prices` | `price_inputs`는 `price`, `target`(미확인은 `null`), `market`, `brief_date`, `valuation_bases`. 통과한 주 지표 비교의 입력을 `comparisons` 순서대로 모두 포함. `prices`는 부록 A `levels()`의 전체 반환값 |
 | `asof` | `시세`, `추세`, `EPS/BPS`, `비교배수`, `실적`, `신호`, `위험`, 목표가 확인 시 `목표가`를 키로 둔다. 각각 `compatible`, `retrieved_at`, `available_at`(시간대 있는 공개 시각) 또는 `available_date`, `evidence`를 기록. 여러 자료를 쓴 항목의 `evidence`에는 자료별 공개·갱신 시각과 기준 시각 적합성의 근거를 모두 담는다 |
 | 선정 후보의 `display` | `description`(회사 설명·`market_cap.display` 그대로), `selection_reason`, `points`(3개 한 줄 문장 목록), `point_sources`(포인트별 인용 URL 목록 3개, 각 URL은 해당 포인트에 `[이름](URL)`으로 포함, 포인트 2는 비울 수 없음), `basis_detail`(채택 EPS/BPS·비교배수·대상 기간·출처·확인일), `signal_link`, 목표가 있으면 `target_reference`(증권사·리포트 날짜·확인된 변경 유형·출처) |
@@ -2097,7 +2098,6 @@ def check_candidate(c, brief_date):
     require(D(inputs['price']) == D(q['close']), '종가·가격 입력 불일치')
     recalculated = levels(inputs['price'], inputs['target'], inputs['market'], brief_date, inputs['valuation_bases'])
     require(c['prices'] == recalculated, '가격 재계산 결과 불일치')
-    require(recalculated['upside_eligible'] is not False, '상승여력 미달')
     v = c['valuation']
     require(v['company_kind'] in ('general', 'financial'), '리츠·업종 미확인 후보는 적격 아님')
     require(price_value(v['eps']) > 0, 'EPS 0 이하 또는 미확인')
@@ -2107,7 +2107,8 @@ def check_candidate(c, brief_date):
     require(all((x['metric'], x['kind']) in allowed_comparisons for x in main), '지원하지 않는 저평가 비교')
     require(len({(x['metric'], x['kind']) for x in main}) == len(main), '저평가 비교 중복')
     require(all(x['passed'] is True or x['passed'] is False or x['passed'] is None for x in main), '비교 판정 오류')
-    require(not any(x['passed'] is False for x in main), '필수 저평가 비교 실패')
+    require({x['kind'] for x in main if x['metric'] == 'PER'}
+            == {'동종 중앙값', '자사 최근 3개 회계연도 중앙값'}, 'PER 두 비교의 판정 기록 필요')
     passed = [x for x in main if x['passed'] is True]
     per = [x for x in passed if x['metric'] == 'PER']
     require(bool(per), 'PER 비교 통과 없음')
@@ -2271,7 +2272,7 @@ def validate_execution_message(s, message):
 
 
 def validate_snapshot(s):
-    require(s['schema_version'] == 'brief-state-v2' and s['validation_version'] == 'brief-check-v2', '검증 버전 불일치')
+    require(s['schema_version'] == 'brief-state-v2' and s['validation_version'] == 'brief-check-v3', '검증 버전 불일치')
     require(s['channel_id'] == 'C0CDFHG8PL7', '게시 채널 불일치')
     require(isinstance(s['candidates'], list), '전체 후보 목록 필요')
     aggregation = aggregate_snapshot(s)
@@ -2282,5 +2283,5 @@ def validate_snapshot(s):
         require(0 < len(text) <= 3000, '메시지 길이 초과: 근거를 유지하며 문장을 줄일 것')
     if s.get('execution_message') is not None:
         validate_execution_message(s, s['execution_message'])
-    return {'ok': True, 'validation_version': 'brief-check-v2'}
+    return {'ok': True, 'validation_version': 'brief-check-v3'}
 ```
