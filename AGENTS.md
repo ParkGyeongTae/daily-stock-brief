@@ -59,7 +59,7 @@
 ## 소스와 조회 원칙
 
 - 기사·공시는 직접 열지 않고 **WebSearch의 제목·URL·요약**으로 확인한다(루틴 환경은 WebFetch가 제한된다). 예외로 **신호 조회** 스크립트의 정형 데이터(DART 공시 목록, Yahoo 투자의견·목표가·실적 발표, 네이버 리포트 목록·목표가)는 근거로 쓴다. 공시 본문의 금액·주당 배당금과 EDGAR 공시 내용은 보도 기사로 확인한다.
-- 종가·등락률·시가총액·추세는 **시세 조회**, EPS·BPS·동종/자사 과거 PER·PBR·분기 영업이익·영업현금흐름은 **가치·실적 지표 조회**의 제공사 표시값(한국 네이버 금융, 미국·분기 실적 Yahoo Finance)을 우선 쓴다. 기사 검색은 신호·할인 이유·위험 판정과 제공값이 없는 비교의 보충에 쓴다.
+- 종가·등락률·시가총액·추세는 **시세 조회**, EPS·BPS·동종/자사 과거 PER·PBR·분기 영업이익·영업현금흐름은 **가치·실적 지표 조회**의 제공사 표시값(한국 네이버 금융, 미국·분기 실적 Yahoo Finance, 한국 최신 정기보고서의 영업이익·영업현금흐름은 DART 재무제표 API)을 우선 쓴다. 기사 검색은 신호·할인 이유·위험 판정과 제공값이 없는 비교의 보충에 쓴다.
 - 허용하는 계산은 `직전 종가 ÷ 제공 EPS·BPS`, 미국 자사 과거 PER용 `회계연도 말 종가 ÷ 제공 연간 희석 EPS`, 비교값의 중앙값, 상대 할인율, 가치기준 진입가뿐이다. 이익·자산·미래 매출을 추정하거나 재무제표 항목을 조합해 새 지표를 만들지 않는다.
 - 스크립트가 주지 않는 EPS/BPS·실제 이익·현금흐름·규제자본 수치가 기사에서 부족하면 **회사 공식 실적 발표문·IR 보도자료의 검색 결과**를 보조 근거로 쓴다. 명시된 수치·정의를 옮기는 범위이며 발행일·대상 기간·기준·원문 URL을 확인하고 30일 제한을 적용한다. 이 지침의 `기사 근거`는 이 보조 근거를 포함한다. 동종·과거 배수 비교, 목표주가(기사 출처일 때)와 위험 판정은 보도 기사로 확인한다.
 - 링크는 검색 결과 또는 이 지침에서 허용한 정형 데이터로 확인한 원문 URL만 쓰고 `utm_*` 등 추적 파라미터를 제거한다. Google News 리다이렉트 URL은 쓰지 않으며, 다음뉴스(`v.daum.net`)는 원문 URL을 찾지 못했을 때만 쓴다.
@@ -187,7 +187,8 @@
 최신 결산기의 **실제 이익과 현금 창출 수치**를 확인한다. 실현되지 않은 계약 총액·매출 전망·목표가 상향·주주환원만으로 통과시키지 않는다.
 
 - 일반 기업은 `sustainability`를 쓴다. Yahoo 분기 재무의 최신 분기에서 **영업이익 양수와 영업현금흐름 양수**를 모두 확인해야 한다(`eligible`). 4분기 전(전년 동기)과 비교한 `yoy`를 함께 본다. 최신 분기가 200일보다 오래됐거나 항목이 없으면 `error`다.
-- 30일 기사·공식 발표에 제공값보다 **새로운 결산기 실적**이 있으면 그 수치를 우선한다. 같은 기간의 영업이익과 영업현금흐름(또는 정의가 명시된 FCF)을 모두 확인해야 한다. 누적으로만 명시됐으면 `현금흐름 검증: 누적`을 표시하고 최신 분기 영업이익 양수를 따로 확인한다. 분기·누적·연간 수치를 섞거나 차감해 분기 수치를 만들지 않는다. 새 결산기의 현금흐름을 확인하지 못하면 이전 분기 제공값으로 통과시키지 않고 보류한다.
+- 한국은 `dart_financials`(DART 정기보고서의 제공값)를 함께 본다. `newer_than_yahoo == true`이면 Yahoo 분기값 대신 이 값으로 판정한다. 최신 분기 영업이익(`operating_income_quarter`) 양수와 누적 영업현금흐름(`operating_cash_flow_cumulative`) 양수(`eligible`)를 확인하고 `현금흐름 검증: 누적`을 표시한다. `yoy`는 분기 영업이익을 전년 같은 분기와, 누적 영업현금흐름을 전년 같은 기간과 비교한다. 누적 수치로는 4분기 중 유출 분기를 확인할 수 없으므로 등급은 최대 1이다. 사업보고서는 4분기 영업이익이 따로 없어 `eligible: null`이며, 기사로 4분기 영업이익 양수를 확인하지 못하면 보류한다. 근거 링크는 `url`(DART 원문)과 접수일(`rcept_date`)이다.
+- 30일 기사·공식 발표에 제공값보다 **새로운 결산기 실적**이 있으면 그 수치를 우선한다. 같은 기간의 영업이익과 영업현금흐름(또는 정의가 명시된 FCF)을 모두 확인해야 한다. 누적으로만 명시됐으면 `현금흐름 검증: 누적`을 표시하고 최신 분기 영업이익 양수를 따로 확인한다. 분기·누적·연간 수치를 섞거나 차감해 분기 수치를 만들지 않는다. 새 결산기의 현금흐름을 확인하지 못하면 이전 분기 제공값으로 통과시키지 않고 보류한다. 한국에서 잠정실적 공시·기사로 새 결산기 실적이 나왔지만 그 기간의 정기보고서가 아직 없고(`dart_financials.filed_for_latest_quarter == false`) 기사에도 현금흐름이 없으면 `보류: 새 결산기 현금흐름 미공시(정기보고서 미제출)`로 둔다.
 - `eligible == false`(최신 분기 영업적자 또는 영업현금 유출)는 원인과 일회성 여부를 기사로 확인한다. 일회성이 아니거나 원인을 확인하지 못하면 제외한다.
 - 금융·보험은 `sustainability`를 쓰지 않고 최신 결산기 실제 순이익 양수와 적용 규제자본비율의 최소 기준 충족을 30일 기사·공식 발표로 확인한다. 확인하지 못하면 보류한다.
 - 일회성 처분이익·평가이익이나 운전자본의 일시적 회수에 의존한 흑자·현금흐름이라는 기사가 있으면 반복 가능한 수익·현금 창출 근거를 추가 확인한다.
@@ -1262,12 +1263,14 @@ EOF
 - `peers`·`history`: 동종 종목별 PER·PBR과 최근 3개 실제 회계연도 PER. 한국은 네이버 연간 PER·EPS·ROE, 미국은 Yahoo 연간 희석 EPS·결산일 이전 마지막 종가(`close_date`)와 그 비율이며 ROE는 최상위 `roe`다. 적자 연도는 표본에서 빠진다. 표본 연도의 연간 EPS가 최근 4분기 EPS의 절반 미만이거나 확인되지 않으면 자사 과거 비교는 `passed: null`이다(이익 회복기·급증으로 부풀려진 과거 배수 방지, 절반은 운영 기준).
 - `valuation.comparisons`: 비교별 자사 배수·표본 수·중앙값·할인율·`passed`, 통과 비교의 `valuation_basis`(`levels()` 입력).
 - `quarters`·`sustainability`: Yahoo 분기 영업이익·영업현금흐름·FCF(최근 5분기)와 최신 분기 판정·`yoy`·`ocf_negative_quarters_4q`·등급.
-- 오류는 최상위 `error`(조회 실패), `errors`(동종·연간·분기 일부 실패), `sustainability.error`로 남는다. 일부 실패는 해당 비교만 미확인이다. 제공값은 조회 시점 값이므로 조회 시각을 함께 저장한다.
+- `dart_financials`(한국만): 최근 200일 안의 가장 새 정기보고서(분기·반기·사업보고서)의 기간 말(`period_end`)·접수일·원문 `url`·연결/별도(`fs_div`), 분기 영업이익과 전년 같은 분기 값, 누적 영업이익, 누적 영업현금흐름과 전년 같은 기간 값, `newer_than_yahoo`(Yahoo 최신 분기보다 새 기간인지), `filed_for_latest_quarter`(브리핑 날짜 직전 분기 말의 보고서가 제출됐는지), `eligible`·`yoy`. 현금흐름은 정기보고서에 누적으로만 나오므로 분기 수치로 바꾸지 않는다. `DART_API_KEY`가 필요하며 신호 조회와 같은 방법으로 불러온다.
+- 오류는 최상위 `error`(조회 실패), `errors`(동종·연간·분기 일부 실패), `sustainability.error`, `dart_financials.error`로 남는다. 일부 실패는 해당 비교만 미확인이다. 제공값은 조회 시점 값이므로 조회 시각을 함께 저장한다.
 
 ```bash
 # 첫 인수는 실행 시작 시 고정한 브리핑 날짜로, 나머지는 실제 후보와 시세 조회 결과로 바꾼다.
 python3 - 2026-11-02 KR:005930=71200@2026-10-30 US:NVDA=182.4@2026-10-30 <<'EOF'
-import json, statistics, sys, urllib.request
+import calendar, io, json, os, re, statistics, sys, threading, urllib.parse, urllib.request, zipfile
+import xml.etree.ElementTree as ET
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal, InvalidOperation
 from functools import lru_cache
@@ -1524,6 +1527,99 @@ def compare(market, code, close, close_date, f):
     add("동종 중앙값", "PBR", pbr_close, peer_pbr, 3, bps, f["urls"]["peers"], names)
     return result
 
+DART_KEY = os.environ.get("DART_API_KEY", "").strip()
+DART_LOCK = threading.Lock()
+DART_REPORTS = {"분기보고서": ("11014", "11013"), "반기보고서": ("11012",), "사업보고서": ("11011",)}
+OPERATING_INCOME = ("dart_OperatingIncomeLoss", "ifrs-full_ProfitLossFromOperatingActivities")
+OPERATING_CASH_FLOW = ("ifrs-full_CashFlowsFromUsedInOperatingActivities",)
+
+def dart(path, **params):
+    if not DART_KEY:
+        raise ValueError("DART_API_KEY 환경변수 없음")
+    url = f"https://opendart.fss.or.kr/api/{path}?" + urllib.parse.urlencode({"crtfc_key": DART_KEY, **params})
+    with urllib.request.urlopen(url, timeout=20) as response:
+        return response.read()
+
+@lru_cache(maxsize=1)
+def dart_corp_codes():
+    with zipfile.ZipFile(io.BytesIO(dart("corpCode.xml"))) as z:
+        root = ET.fromstring(z.read(z.namelist()[0]))
+    return {(e.findtext("stock_code") or "").strip(): e.findtext("corp_code")
+            for e in root.iter("list") if (e.findtext("stock_code") or "").strip()}
+
+def dart_amount(rows, sections, accounts, field):
+    for r in rows:
+        if r.get("sj_div") in sections and r.get("account_id") in accounts:
+            value = num(r.get(field))
+            return value
+    return None
+
+def dart_financials(code, yahoo_latest):
+    # Yahoo 분기 재무보다 새 정기보고서가 있으면 그 영업이익과 누적 영업현금흐름을 제공값으로 쓴다.
+    with DART_LOCK:  # 병렬 조회에서 고유번호 파일을 한 번만 받는다.
+        corp = dart_corp_codes().get(code)
+    if not corp:
+        raise ValueError("DART 고유번호 없음")
+    quarter_ends = [date(y, m, calendar.monthrange(y, m)[1]) for y in (today.year - 1, today.year) for m in (3, 6, 9, 12)]
+    latest_quarter = max(d for d in quarter_ends if d < today)
+    data = json.loads(dart("list.json", corp_code=corp, bgn_de=f"{today - timedelta(days=200):%Y%m%d}",
+                           end_de=f"{today:%Y%m%d}", pblntf_ty="A", page_count=100))
+    if data.get("status") not in ("000", "013"):
+        raise ValueError(f"DART {data.get('status')}: {data.get('message')}")
+    reports = []
+    for item in data.get("list", []):
+        m = re.search(r"(분기보고서|반기보고서|사업보고서)\s*\((\d{4})\.(\d{2})\)", item["report_nm"])
+        if m:
+            y, mo = int(m.group(2)), int(m.group(3))
+            reports.append((m.group(1), date(y, mo, calendar.monthrange(y, mo)[1]), item))
+    base = {"source": "DART OpenAPI", "latest_quarter_end": latest_quarter.isoformat()}
+    if not reports:
+        return {**base, "filed_for_latest_quarter": False, "newer_than_yahoo": False,
+                "status": "최근 200일 정기보고서 없음"}
+    kind, period_end, _ = max(reports, key=lambda r: r[1])
+    # 정정 보고서도 같은 기간으로 보고, 재무제표 조회 결과의 접수번호가 목록과 일치할 때만 쓴다.
+    rcepts = {r[2]["rcept_no"]: r[2]["rcept_dt"] for r in reports if r[1] == period_end}
+    for year in (period_end.year, period_end.year - 1):
+        for reprt in DART_REPORTS[kind]:
+            for fs in ("CFS", "OFS"):
+                d = json.loads(dart("fnlttSinglAcntAll.json", corp_code=corp, bsns_year=str(year),
+                                    reprt_code=reprt, fs_div=fs))
+                if d.get("status") == "013":
+                    continue
+                if d.get("status") != "000":
+                    raise ValueError(f"DART {d.get('status')}: {d.get('message')}")
+                rows = d["list"]
+                rcept = rows[0].get("rcept_no")
+                if rcept not in rcepts:
+                    continue
+                annual = reprt == "11011"
+                first = reprt == "11013"
+                income = ("IS", "CIS")
+                oi_q = None if annual else dart_amount(rows, income, OPERATING_INCOME, "thstrm_amount")
+                oi_q_prior = None if annual else (dart_amount(rows, income, OPERATING_INCOME, "frmtrm_q_amount")
+                                                  or (dart_amount(rows, income, OPERATING_INCOME, "frmtrm_amount") if first else None))
+                oi_cum = dart_amount(rows, income, OPERATING_INCOME, "thstrm_amount" if annual or first else "thstrm_add_amount")
+                ocf = dart_amount(rows, ("CF",), OPERATING_CASH_FLOW, "thstrm_amount")
+                ocf_prior = dart_amount(rows, ("CF",), OPERATING_CASH_FLOW, "frmtrm_amount")
+                result = {**base, "report": kind, "reprt_code": reprt, "fs_div": fs, "period_end": period_end.isoformat(),
+                          "rcept_no": rcept, "rcept_date": datetime.strptime(rcepts[rcept], "%Y%m%d").date().isoformat(),
+                          "url": f"https://dart.fss.or.kr/dsaf001/main.do?rcpNo={rcept}",
+                          "filed_for_latest_quarter": period_end >= latest_quarter,
+                          "newer_than_yahoo": yahoo_latest is None or period_end > date.fromisoformat(yahoo_latest),
+                          "operating_income_quarter": str(oi_q) if oi_q is not None else None,
+                          "operating_income_quarter_prior_year": str(oi_q_prior) if oi_q_prior is not None else None,
+                          "operating_income_cumulative": str(oi_cum) if oi_cum is not None else None,
+                          "operating_cash_flow_cumulative": str(ocf) if ocf is not None else None,
+                          "operating_cash_flow_cumulative_prior_year": str(ocf_prior) if ocf_prior is not None else None,
+                          "cash_flow_basis": "누적(회계연도 시작~기간 말)", "eligible": None, "yoy": None}
+                if oi_q is not None and ocf is not None:
+                    result["eligible"] = oi_q > 0 and ocf > 0
+                if oi_q is not None and oi_q_prior is not None and ocf is not None and ocf_prior is not None:
+                    result["yoy"] = {"operating_income_quarter_maintained": oi_q >= oi_q_prior,
+                                     "operating_cash_flow_cumulative_maintained": ocf >= ocf_prior}
+                return result
+    raise ValueError(f"{kind} ({period_end:%Y.%m}) 재무제표 조회 결과 없음 또는 접수번호 불일치")
+
 def run(market, code, close, close_date):
     base = {"market": market, "code": code,
             "retrieved_at": datetime.now(KST).isoformat(timespec="seconds")}
@@ -1540,6 +1636,11 @@ def run(market, code, close, close_date):
                 break
         except Exception as e:
             f["errors"].append(f"분기 실적 {s}: {type(e).__name__}: {e}"[:200])
+    if market == "KR":
+        try:
+            f["dart_financials"] = dart_financials(code, quarters[0]["period_end"] if quarters else None)
+        except Exception as e:
+            f["dart_financials"] = {"error": f"DART 재무: {type(e).__name__}: {e}"[:200]}
     return {**base, **f, "quarters": quarters, "quarters_source": "Yahoo Finance",
             "sustainability": sustainability(quarters), "valuation": compare(market, code, close, close_date, f)}
 
