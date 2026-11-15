@@ -572,7 +572,7 @@ _회사 설명 1줄 · 시가총액 12.3조 원 (네이버, 11/2 07:02 KST 조�
 
 ## 코드 부록
 
-본문의 입력·출력·오류 처리 계약을 먼저 확인한 뒤 필요한 코드만 실행한다. 예시 날짜·종목·세션 경로는 실제 확인값으로 바꾸며, 계산·조회 코드를 임의로 재작성하지 않는다. Python 3.10 이상에서 설치와 실행에 같은 인터프리터를 사용한다.
+본문의 입력·출력·오류 처리 계약을 먼저 확인한 뒤 필요한 코드만 실행한다. 예시 날짜·종목·세션 경로는 실제 확인값으로 바꾸며, 계산·조회 코드를 임의로 재작성하지 않는다. Python 3.10 이상에서 설치와 실행에 같은 인터프리터를 사용한다. 조회 코드는 적힌 대로 `python3 - ... <<'EOF'`로 실행한다. 파일로 저장하면 `signal.py`처럼 표준 모듈과 같은 이름을 피하고(예: `brief_signals.py`), 실행 폴더에도 그런 이름의 파일을 두지 않는다. 같은 이름이 있으면 `yfinance`·`asyncio`가 그 파일을 대신 불러와 조회가 멈춘다.
 
 ### 환경 준비
 
@@ -700,7 +700,7 @@ def levels(price, target, market, brief_date, valuation_bases):
 
 ### B. 시세 조회
 
-고정 브리핑 날짜와 후보 식별자 전체를 한 번에 넘기며 종목별 JSON 한 줄을 받는다.
+고정 브리핑 날짜와 후보 식별자 전체를 한 번에 넘기며 종목별 JSON 한 줄을 받는다. 8개 병렬·입력 순서 출력을 적용한다.
 
 | 항목 | 기준 |
 |---|---|
@@ -953,13 +953,22 @@ def errors_of(result):
                               "trend": result["trend"].get("error")}.items() if v}
 
 targets = [arg.split(":", 1) for arg in sys.argv[2:]]
-results = [lookup(market, code) for market, code in targets]
-failed = [i for i, r in enumerate(results) if errors_of(r)]
-if failed:
-    time.sleep(RETRY_WAIT)
-    for i in failed:
-        first = errors_of(results[i])
-        results[i] = {**lookup(*targets[i]), "retry": {"waited_sec": RETRY_WAIT, "first_errors": first}}
+# 빠른 확인에서 후보 전체를 넘기므로 8개씩 병렬 조회하고 입력 순서대로 출력한다.
+from concurrent.futures import ThreadPoolExecutor
+import yfinance  # noqa: F401 — 스레드에서 동시에 처음 import하지 않도록 미리 불러온다.
+for market in {m for m, _ in targets}:
+    try:
+        session_dates(market)  # 달력·KOSPI 거래일을 스레드 시작 전에 한 번만 받아 캐시한다.
+    except Exception:
+        pass  # 실패는 종목별 조회에서 다시 시도해 오류로 남긴다.
+with ThreadPoolExecutor(max_workers=8) as pool:
+    results = list(pool.map(lambda t: lookup(*t), targets))
+    failed = [i for i, r in enumerate(results) if errors_of(r)]
+    if failed:
+        time.sleep(RETRY_WAIT)
+        retried = list(pool.map(lambda i: lookup(*targets[i]), failed))
+        for i, again in zip(failed, retried):
+            results[i] = {**again, "retry": {"waited_sec": RETRY_WAIT, "first_errors": errors_of(results[i])}}
 for result in results:
     print(json.dumps(result, ensure_ascii=False))
 EOF
@@ -1242,7 +1251,8 @@ def us(code, earnings=True):
         for ts, r in t.upgrades_downgrades.iterrows():
             when = ts.to_pydatetime()
             if when.tzinfo is None:
-                raise ValueError("투자의견 발표 시각의 시간대 미확인")
+                # yfinance는 Yahoo epochGradeDate(Unix 초)를 pd.to_datetime(unit="s")로 바꿔 시간대 없는 UTC로 준다.
+                when = when.replace(tzinfo=timezone.utc)
             when = when.astimezone(KST)
             if not risk_start < when <= cutoff:
                 continue
