@@ -58,7 +58,7 @@
 
 ## 소스와 조회 원칙
 
-- 기사·공시는 직접 열지 않고 **WebSearch의 제목·URL·요약**으로 확인한다(루틴 환경은 WebFetch가 제한된다). 예외로 **신호 조회** 스크립트의 정형 데이터(DART 공시 목록, Yahoo 투자의견·목표가·실적 발표, 네이버 리포트 목록)는 근거로 쓴다. 공시 본문의 금액·주당 배당금과 EDGAR 공시 내용은 보도 기사로 확인한다.
+- 기사·공시는 직접 열지 않고 **WebSearch의 제목·URL·요약**으로 확인한다(루틴 환경은 WebFetch가 제한된다). 예외로 **신호 조회** 스크립트의 정형 데이터(DART 공시 목록, Yahoo 투자의견·목표가·실적 발표, 네이버 리포트 목록·목표가)는 근거로 쓴다. 공시 본문의 금액·주당 배당금과 EDGAR 공시 내용은 보도 기사로 확인한다.
 - 종가·등락률·시가총액·추세는 **시세 조회**, EPS·BPS·동종/자사 과거 PER·PBR·분기 영업이익·영업현금흐름은 **가치·실적 지표 조회**의 제공사 표시값(한국 네이버 금융, 미국·분기 실적 Yahoo Finance)을 우선 쓴다. 기사 검색은 신호·할인 이유·위험 판정과 제공값이 없는 비교의 보충에 쓴다.
 - 허용하는 계산은 `직전 종가 ÷ 제공 EPS·BPS`, 미국 자사 과거 PER용 `회계연도 말 종가 ÷ 제공 연간 희석 EPS`, 비교값의 중앙값, 상대 할인율, 가치기준 진입가뿐이다. 이익·자산·미래 매출을 추정하거나 재무제표 항목을 조합해 새 지표를 만들지 않는다.
 - 스크립트가 주지 않는 EPS/BPS·실제 이익·현금흐름·규제자본 수치가 기사에서 부족하면 **회사 공식 실적 발표문·IR 보도자료의 검색 결과**를 보조 근거로 쓴다. 명시된 수치·정의를 옮기는 범위이며 발행일·대상 기간·기준·원문 URL을 확인하고 30일 제한을 적용한다. 이 지침의 `기사 근거`는 이 보조 근거를 포함한다. 동종·과거 배수 비교, 목표주가(기사 출처일 때)와 위험 판정은 보도 기사로 확인한다.
@@ -81,12 +81,12 @@
 
 ### 조사 범위와 종료
 
-- **한국 탐색**: `신호 조회 --discover-kr`로 신호 기간의 DART 자사주·배당·공급계약 공시와 네이버 종목분석 리포트 목록(`research_reports`)을 모은다. DART가 실패하면 그 세 종류를, 리포트 목록이 실패하면 목표주가·투자의견 상향을 기사로 검색한다. 리포트 목록은 후보 발견 경로일 뿐이며 상향 여부는 상세 검증에서 기사로 확인한다.
+- **한국 탐색**: `신호 조회 --discover-kr`로 신호 기간의 DART 자사주·배당·공급계약 공시와 네이버 종목분석 리포트 목록(`research_reports`)을 모은다. 리포트가 있는 종목은 리포트마다 같은 증권사의 직전 리포트 목표가와 비교해 상향·하향·유지(`target_change`)와 `target_raise_score`를 함께 판정한다([네이버 목표가 비교](#긍정-신호와-점수)). DART가 실패하면 그 세 종류를, 리포트 목록이 실패하면 목표주가·투자의견 상향을 기사로 검색한다. 목표가 비교가 `unknown`인 리포트만 상세 검증에서 기사로 확인한다.
 - **미국 탐색**: `신호 조회 --discover-us`로 S&P 500·S&P MidCap 400 구성 종목의 신호 기간 투자의견·목표가 상향(`target_raises`)과 Yahoo 실적 캘린더의 EPS 컨센서스 상회(`latest_earnings`)를 모은다. 구성 종목 밖의 기업은 기사 검색으로 보충한다. 구성 종목·실적 캘린더 조회가 실패하면 실패한 종류를 기사로 검색한다. `failed` 종목은 해당 신호가 미확인이다. 탐색 결과는 후보 조회 결과와 같은 근거로 쓴다.
 - **기사 탐색**: 시장별로 아래 신호 여섯 종류를 각각 한 번 이상 검색한다. 스크립트 탐색에 성공한 종류(한국은 DART 세 종류와 리포트 목록이 성공하면 목표주가·투자의견 상향, 미국 두 종류)는 제외한다. 회사명 없는 검색에도 신호 기간의 시작·끝을 명시하며, 여러 종류를 한 호출에 묶어도 종류별 검색어·결과·오류를 구분한다. 한 종류의 결과로 다른 종류까지 조사했다고 기록하지 않는다.
 - 식별한 기업을 시장·종목코드/티커로 합쳐 후보 목록을 저장한다. 코드가 미확인이면 시장·회사명으로 임시 식별하고 나중에 병합한다. 같은 기업의 여러 기사·신호를 후보 수에 중복 가산하지 않는다.
-- **빠른 확인(한도 없음)**: 발견한 모든 후보에 중복 확인과 **시세 조회**를, 중복·급등·시세 오류가 없는 후보 전체에 **가치·실적 지표 조회**를 일괄 실행하고 저평가 1~3단계까지 마친다. 기사 검색이 필요 없으므로 조사 한도와 무관하며, 여기서 확정된 제외·조회 오류 보류는 한도에 세지 않는다. 추세 미충족, 저평가 미확인(`passed: null`), `sustainability`의 `false`·`error`는 여기서 제외하지 않는다. 실행 제한에 걸리면 나눠 실행하며, 빠른 확인을 끝내지 않은 채 후보를 `미조사`로 남기지 않는다. 그래도 끝내지 못한 후보는 `미조사: 실행 제한(빠른 확인)`으로 따로 세고 막힌 원인(도구 오류 원문·시간 초과 등)을 기록한다.
-- **상세 검증(시장별 최대 12개)**: 빠른 확인을 통과한 후보의 기사 기반 검증(신호 근거·할인 이유·실적 보충·네 묶음 위험·목표가)을 다음 그룹 순서로 한다. ① 저평가 비교 통과·지속성 `true`·추세 통과 → ② 저평가 비교 통과·지속성 `true`·추세 미충족 → ③ 저평가 비교 통과·지속성 `false`/`error` → ④ 저평가 미확인. 그룹 안에서는 스크립트 기준 저평가 등급 → `sustainability.grade` → 신호 사전 근거 → 가장 최근 인정 사건일 → 종목코드/티커 오름차순이다. 신호 사전 근거는 상세 검증 전에 정형 데이터·탐색 결과로 알 수 있는 값이다. 미국은 스크립트가 인정한 신호 점수 합계(`latest_earnings` 상회 2점 + `target_raise_score`)가 높은 순이며 기사 탐색으로만 발견한 후보는 0으로 둔다. 한국은 DART 긍정 공시(`disclosures`)가 있거나 기사 탐색 결과에 신호 사실이 나온 후보 → 신호 기간 리포트(`research_reports`)의 증권사가 2곳 이상인 후보 → 1곳인 후보 순이다. 사전 근거는 조사 순서를 정하는 데 쓰며, 최종 신호 점수는 신호 인정 규칙으로 확정한다. 한국 공시 제목 신호도 후보별 조회의 후속 변경 점검을 통과해야 확정한다. 이는 조사 순서이며 최종 순위·등급은 상세 검증 후 확정한다. 신호 근거가 미완료이면 신호부터 확인하고, 불명확한 점수를 임의로 높이지 않는다. 한도를 넘긴 후보는 그룹 번호를 붙여 `미조사: 조사 한도(그룹 ④)`처럼 남긴다. 한도 안에서 시작했지만 끝내지 못한 후보는 `미조사: 실행 제한(상세 검증)`과 막힌 원인을 기록한다.
+- **빠른 확인(한도 없음)**: 발견한 모든 후보에 중복 확인과 **시세 조회**를, 중복·급등·시세 오류가 없는 후보 전체에 **가치·실적 지표 조회**를 일괄 실행하고 저평가 1~3단계까지 마친다. 기사 검색이 필요 없으므로 조사 한도와 무관하며, 여기서 확정된 제외·조회 오류 보류는 한도에 세지 않는다. 한국 리포트로만 발견된 후보(DART 긍정 공시·기사 탐색 신호 없음)의 신호 기간 리포트가 모두 `down`·`same`이면 `제외: 신호 요건 미충족(목표가 유지·하향)`으로 여기서 확정한다. 추세 미충족, 저평가 미확인(`passed: null`), `sustainability`의 `false`·`error`, 목표가 비교 `unknown`은 여기서 제외하지 않는다. 실행 제한에 걸리면 나눠 실행하며, 빠른 확인을 끝내지 않은 채 후보를 `미조사`로 남기지 않는다. 그래도 끝내지 못한 후보는 `미조사: 실행 제한(빠른 확인)`으로 따로 세고 막힌 원인(도구 오류 원문·시간 초과 등)을 기록한다.
+- **상세 검증(시장별 최대 12개)**: 빠른 확인을 통과한 후보의 기사 기반 검증(신호 근거·할인 이유·실적 보충·네 묶음 위험·목표가)을 다음 그룹 순서로 한다. ① 저평가 비교 통과·지속성 `true`·추세 통과 → ② 저평가 비교 통과·지속성 `true`·추세 미충족 → ③ 저평가 비교 통과·지속성 `false`/`error` → ④ 저평가 미확인. 그룹 안에서는 스크립트 기준 저평가 등급 → `sustainability.grade` → 신호 사전 근거 → 가장 최근 인정 사건일 → 종목코드/티커 오름차순이다. 신호 사전 근거는 상세 검증 전에 정형 데이터·탐색 결과로 알 수 있는 값이다. 미국은 스크립트가 인정한 신호 점수 합계(`latest_earnings` 상회 2점 + `target_raise_score`)가 높은 순이며 기사 탐색으로만 발견한 후보는 0으로 둔다. 한국은 `target_raise_score`에 DART 긍정 공시(`disclosures`)나 기사 탐색 결과의 신호 사실이 있으면 1점을 더한 합계가 높은 순이며, 상향이 확인되지 않고 `unknown` 리포트만 있는 후보는 0으로 둔다. 사전 근거는 조사 순서를 정하는 데 쓰며, 최종 신호 점수는 신호 인정 규칙으로 확정한다. 한국 공시 제목 신호도 후보별 조회의 후속 변경 점검을 통과해야 확정한다. 이는 조사 순서이며 최종 순위·등급은 상세 검증 후 확정한다. 신호 근거가 미완료이면 신호부터 확인하고, 불명확한 점수를 임의로 높이지 않는다. 한도를 넘긴 후보는 그룹 번호를 붙여 `미조사: 조사 한도(그룹 ④)`처럼 남긴다. 한도 안에서 시작했지만 끝내지 못한 후보는 `미조사: 실행 제한(상세 검증)`과 막힌 원인을 기록한다.
 - 선행 조건을 통과한 후보는 네 묶음 위험 검색을 모두 마쳐야 선정할 수 있다. 후속 검색에서 선행 판정을 바꾸는 자료가 나오면 해당 단계로 돌아가 재검증한다. 탈락 후보의 빈자리는 남은 조사 대상에서 같은 절차로 확인하며, 선정 수를 채운 뒤에도 남은 조사 대상은 판정하거나 미조사로 명시한다.
 - 독립적인 검색·조회는 도구가 지원하면 묶어서 호출하되 결과는 항목별로 확인한다. 한도나 실행 제한 때문에 조사하지 못한 기업·신호 종류를 숨기지 않는다.
 
@@ -119,7 +119,7 @@
 | 미국 `latest_earnings` | `in_signal_window`·`beat`가 모두 `true`이면 **실적 컨센서스 상회 2점**. `basis`의 Yahoo 제공 EPS로 추정·실제가 같은 제공사 기준이며 발표 시각이 사건일이다. |
 | 미국 `target_raises` | 신호 기간 안의 투자의견·목표가 상향(최초 커버리지 제외). **`target_raise_score`**를 점수로 쓰며 증권사·시각·기존/새 목표가를 기록한다. |
 | 한국 `disclosures` | 후보별 조회의 `title_only_eligible == true`인 신규 자사주 취득·소각 결정·공급계약 체결 공시는 기사 없이 해당 항목 1점을 인정한다. DART 접수일이 사건일이며 금액·주식 수·계약 상대방·기간은 확인된 경우만 쓴다. 탐색 결과만으로 확정하지 않으며 아래 한국 공시 검증 규칙을 적용한다. 배당은 기존·새 주당 배당금과 확대 결정을 기사로 확인해야 한다. |
-| 한국 `research_reports` | 신호 기간 리포트의 증권사·날짜 목록이다. 목표가·투자의견 상향 여부는 기사로 확인하며 목록만으로 점수를 주지 않는다. |
+| 한국 `target_raises` | 네이버 리포트의 목표가를 같은 증권사의 직전 리포트 목표가와 비교해 `up`인 신호 기간 리포트다. **`target_raise_score`**를 점수로 쓰며 증권사·리포트 날짜·기존/새 목표가·링크를 기록한다. `unknown` 리포트는 기사로 상향을 확인한 경우만 점수에 더한다(증권사 기준 중복 없이 최대 2점). |
 | 한국 `earnings_releases` | 잠정실적 공시일(사건일) 확인용이다. 컨센서스 상회는 기사로 확인한다. |
 
 | 신호 | 점수 | 인정 조건 |
@@ -132,6 +132,13 @@
 | 배당 확대 | 1 | 같은 기준의 기존·새 주당 배당금과 확대 결정 공시 확인. 유지·검토·주가 하락에 따른 배당수익률 상승은 제외 |
 
 각 항목은 한 번만 센다. 같은 실적의 여러 기사나 같은 자사주 계획의 결정·이행을 중복 가산하지 않는다. 주가 상승만으로는 긍정 신호를 인정하지 않는다.
+
+**네이버 목표가 비교**
+
+- 신호 조회는 네이버 종목별 리포트 목록과 리포트 상세의 `goalPrice`(목표가)·`opinion`(투자의견)을 쓴다. 상세의 `prevGoalPrice`는 작성일 주가와 같은 값이라 이전 목표가로 쓰지 않는다.
+- 직전 리포트는 같은 증권사명(문자열 일치)이 더 이른 날짜에 낸 가장 최근 리포트다. 목표가가 더 높으면 `up`, 낮으면 `down`, 같고 투자의견도 같으면 `same`이다.
+- 다음은 `unknown`이며 점수를 주지 않는다: 목표가 없음, 같은 증권사의 직전 리포트가 없음(최초 커버리지 가능), 직전 리포트가 183일보다 오래됨, 같은 날 같은 증권사 리포트가 여럿이고 목표가가 다름, 목표가는 같지만 투자의견이 바뀜, 목표가와 투자의견의 방향이 반대이거나 바뀐 투자의견을 분류할 수 없음, 조회 범위 부족·조회 오류. `unknown`은 기사로 확인할 수 있으며, 최초 커버리지는 기사로도 인정하지 않는다.
+- 네이버에 올라오지 않은 리포트에서 목표가가 바뀌었을 수 있으므로, 이 비교는 `네이버 게시 리포트 기준`으로 기록한다. 네이버 비공식 API라 형식이 바뀌거나 실패하면 `errors`에 남고 기사 검색으로 보충한다.
 
 **한국 공시 제목만으로 인정하는 범위**
 
@@ -350,7 +357,7 @@ _회사 설명 1줄 · 시가총액 12.3조 원 (네이버, 11/2 07:02 KST 조�
 | 진입 | `entry` 뒤에 `이하`와 `entry_status`. 종가를 그대로 복사하지 않음 |
 | 손절 | `stop`, 괄호는 `(−8%)` |
 
-- **목표가 출처와 채택**: 30일 안의 증권사·애널리스트 목표가를 쓴다. 미국은 먼저 **신호 조회**의 `targets_30d`(Yahoo 투자의견 자료의 증권사·시각·기존/새 목표가)를 쓰고, 출처는 `[Yahoo Finance](https://finance.yahoo.com/quote/티커/analysis)`와 조회일로 표시한다. 그 밖에는 기사에서 찾고, 선정 기사에 없으면 `회사명 목표주가` / `티커 price target`으로 추가 검색한다. 여러 값을 확인하면 리포트 발표일(KST 날짜)이 가장 최근인 것, 같은 날이면 더 낮은 목표가, 그래도 같으면 증권사명 오름차순으로 정한다. 모든 확인값과 채택 이유를 저장하며 상승여력이 큰 값을 골라 쓰지 않는다. 확인하지 못하면 `• 목표주가 미확인`으로 쓰고 컨센서스 평균·오래된 값으로 채우지 않는다.
+- **목표가 출처와 채택**: 30일 안의 증권사·애널리스트 목표가를 쓴다. 미국은 먼저 **신호 조회**의 `targets_30d`(Yahoo 투자의견 자료의 증권사·시각·기존/새 목표가)를 쓰고, 출처는 `[Yahoo Finance](https://finance.yahoo.com/quote/티커/analysis)`와 조회일로 표시한다. 한국은 먼저 **신호 조회**의 `targets_30d`(네이버 리포트의 증권사·날짜·목표가)를 쓰고, 출처는 해당 리포트의 `url`을 `[네이버 리포트](url)`로 표시한다. 그 밖에는 기사에서 찾고, 선정 기사에 없으면 `회사명 목표주가` / `티커 price target`으로 추가 검색한다. 여러 값을 확인하면 리포트 발표일(KST 날짜)이 가장 최근인 것, 같은 날이면 더 낮은 목표가, 그래도 같으면 증권사명 오름차순으로 정한다. 모든 확인값과 채택 이유를 저장하며 상승여력이 큰 값을 골라 쓰지 않는다. 확인하지 못하면 `• 목표주가 미확인`으로 쓰고 컨센서스 평균·오래된 값으로 채우지 않는다.
 - 목표가는 보통 6~12개월 기준이라 4주 수익실현가로 쓰지 않는다. +16%·−8%는 진입가를 분모로 한 공통 계산 규칙이며 적정가치·기대수익률이 아니다. 실제 체결가가 다르면 비율을 체결가 기준으로 재산정해야 하며, 루틴은 주문하거나 체결을 가정해 기록하지 않는다.
 - 매수상한·진입·수익실현은 내림, 손절은 올림이다(한국 KRX 호가 단위, 미국 1센트). 코드의 수익실현 `min(보수 기준가치, 진입가 × 1.16)`은 복원 호환용이며 현재 규칙에서는 진입가 × 1.16과 같다. **반드시 아래 코드로 계산**한다.
 
@@ -745,12 +752,12 @@ EOF
 
 ## 신호 조회
 
-긍정 신호의 날짜·종류와 미국 목표가를 정형 데이터로 확인한다. 한국 DART 조회는 `DART_API_KEY`가 필요하며 키 값은 기록·출력·메시지에 남기지 않는다. 환경변수가 없고 작업 폴더에 `.env`(Git 제외, 형식은 `.env.example`)가 있으면 `set -a; . ./.env; set +a`로 불러온다. 키가 없거나 DART가 실패하면 `errors`에 남고 기사 검색으로 보충한다.
+긍정 신호의 날짜·종류와 목표가를 정형 데이터로 확인한다. 한국 DART 조회는 `DART_API_KEY`가 필요하며 키 값은 기록·출력·메시지에 남기지 않는다. 환경변수가 없고 작업 폴더에 `.env`(Git 제외, 형식은 `.env.example`)가 있으면 `set -a; . ./.env; set +a`로 불러온다. 키가 없거나 DART가 실패하면 `errors`에 남고 기사 검색으로 보충한다.
 
-- `--discover-kr`: 신호 기간의 유가증권(`Y`)·코스닥(`K`) 주요사항·거래소 공시 중 자사주·배당·공급계약 분류를 종목별로 모으고, 네이버 종목분석 리포트 전체 목록에서 신호 기간 리포트(`research_reports`)가 있는 종목을 더한다. 리포트 종목의 시장은 네이버 종목 기본정보로 확인해 유가증권·코스닥만 후보로 넣고, 나머지(코넥스·확인 실패 포함)는 `research.skipped`에 남긴다. 페이지 한도로 일부만 조회하면 `errors`에 남는다.
+- `--discover-kr`: 신호 기간의 유가증권(`Y`)·코스닥(`K`) 주요사항·거래소 공시 중 자사주·배당·공급계약 분류를 종목별로 모으고, 네이버 종목분석 리포트 전체 목록에서 신호 기간 리포트(`research_reports`)가 있는 종목을 더한다. 리포트 종목의 시장은 네이버 종목 기본정보로 확인해 유가증권·코스닥만 후보로 넣고, 나머지(코넥스·확인 실패 포함)는 `research.skipped`에 남긴다. 리포트가 있는 후보는 8개 병렬로 목표가 비교를 해 `research_reports`의 각 리포트에 `target_change`를, 후보에 `target_raise_score`를 붙인다. 페이지 한도로 일부만 조회하면 `errors`에 남는다.
 - `--discover-us`: Wikipedia 구성표에서 S&P 500·S&P MidCap 400 종목(약 900개)을 받아 종목별 투자의견·목표가 상향을 8개 병렬로 조회하고, EPS 컨센서스 상회는 Yahoo 실적 캘린더(100건 단위 페이지)에서 찾는다. 종목별 실적 발표 조회를 수백 번 반복하면 Yahoo가 요청을 제한하기 때문이다. 실적 캘린더가 실패하면 60초 뒤 한 번 다시 조회하며, `earnings_calendar_events`가 `null`이 아니면 성공이고 `errors`의 `1차` 오류는 재시도 기록이다. 결과는 `candidates`(신호가 있는 종목)·`failed`·`errors`다.
 - 후보 조회(`KR:종목코드` / `US:티커`):
-  - 한국: `disclosures`(신호 기간 긍정 공시와 `title_only_eligible`·판정 사유), `disclosure_changes`(30일 자사주·배당·공급계약의 정정·취소 등 변경 가능 공시), `earnings_releases`(잠정실적 공시), `risk_disclosures`(30일 희석·소송·규제 공시), `research_reports`(신호 기간 네이버 리포트 목록). 각 항목에 날짜·제목·링크가 있다. `title_only_eligible`은 탐색에서는 `null`이며 후보별 완전 조회에서만 확정한다.
+  - 한국: `disclosures`(신호 기간 긍정 공시와 `title_only_eligible`·판정 사유), `disclosure_changes`(30일 자사주·배당·공급계약의 정정·취소 등 변경 가능 공시), `earnings_releases`(잠정실적 공시), `risk_disclosures`(30일 희석·소송·규제 공시), `research_reports`(신호 기간 네이버 리포트와 `target_change`), `target_raises`·`target_raise_score`, `target_cuts_30d`(30일 하향), `targets_30d`(30일 안의 목표가가 있는 모든 리포트). 각 항목에 날짜·제목·링크가 있다. `title_only_eligible`은 탐색에서는 `null`이며 후보별 완전 조회에서만 확정한다.
   - 미국: `target_raises`(신호 기간 상향)·`target_raise_score`, `target_cuts_30d`(30일 하향), `targets_30d`(30일 안의 목표가가 있는 모든 투자의견), `latest_earnings`(최근 실적 발표의 EPS 추정·실제·`beat`·`in_signal_window`).
 - 공시 분류는 제목 문구 기준이다. 해지·철회·취소·해제·처분 공시와 `(자회사의 주요경영사항)` 공시는 긍정 신호로 분류하지 않는다. 자사주·배당·공급계약의 변경 가능 공시는 별도로 보존해 신규 결정의 자동 인정 여부를 점검한다. 같은 종류라는 사실만으로 원공시와 변경 공시를 같은 사건으로 연결하지 않으며, 애매한 제목은 기사로 확인한다.
 
@@ -887,18 +894,92 @@ def assess_title_signals(rows, complete):
         r["possible_followup_urls"] = [c["url"] for c in later]
     return changes
 
-def naver_researches(code):
-    req = urllib.request.Request(f"https://m.stock.naver.com/api/stock/{code}/integration",
-                                 headers={"User-Agent": "Mozilla/5.0"})
+PREVIOUS_MAX_DAYS = 183  # 같은 증권사의 직전 리포트가 이보다 오래되면 목표가 변화를 판정하지 않는다.
+# 투자의견이 바뀐 리포트의 방향 확인용. 목록 밖의 표기는 분류하지 않는다.
+OPINION_RANK = {"매도": 1, "sell": 1, "reduce": 1, "underperform": 1, "비중축소": 1,
+                "중립": 2, "보유": 2, "hold": 2, "neutral": 2, "marketperform": 2,
+                "매수": 3, "buy": 3, "tradingbuy": 3, "outperform": 3, "overweight": 3, "비중확대": 3,
+                "적극매수": 4, "strongbuy": 4}
+
+def opinion_rank(opinion):
+    return OPINION_RANK.get("".join((opinion or "").lower().split()))
+
+def naver_get(path):
+    req = urllib.request.Request(f"https://m.stock.naver.com/api/{path}", headers={"User-Agent": "Mozilla/5.0"})
     with urllib.request.urlopen(req, timeout=10) as response:
-        data = json.load(response)
-    rows = []
-    for r in data.get("researches") or []:
-        d = datetime.strptime(r["wdt"], "%Y%m%d").date()
-        if inside(d, signal_start):
-            rows.append({"date": d.isoformat(), "broker": r.get("bnm"), "title": r.get("tit"),
-                         "url": f"https://finance.naver.com/research/company_read.naver?nid={r['id']}"})
-    return rows
+        return json.load(response)
+
+@lru_cache(maxsize=None)
+def naver_research_detail(rid):
+    c = naver_get(f"research/company/{rid}")["researchContent"]
+    try:
+        goal = Decimal(str(c.get("goalPrice")))
+    except Exception:
+        goal = None
+    # prevGoalPrice는 작성일 주가와 같은 값이라 이전 목표가로 쓰지 않는다.
+    return {"opinion": c.get("opinion"), "goal_price": str(goal) if goal is not None and goal.is_finite() and goal > 0 else None}
+
+def naver_target_changes(code, max_pages=10):
+    # 30일 리포트마다 같은 증권사의 직전 리포트 목표가와 비교한다(네이버 게시 리포트 기준).
+    horizon = risk_start.date() - timedelta(days=PREVIOUS_MAX_DAYS)
+    rows, truncated = [], True
+    for page in range(1, max_pages + 1):
+        data = naver_get(f"research/stock/{code}?page={page}&pageSize=20")
+        rows += [r for r in data if r.get("itemCode") == code]
+        if len(data) < 20 or date.fromisoformat(data[-1]["writeDate"]) < horizon:
+            truncated = False
+            break
+    reports = []
+    for r in rows:
+        d = date.fromisoformat(r["writeDate"])
+        if not inside(d, risk_start):
+            continue
+        row = {"date": d.isoformat(), "broker": r.get("brokerName"), "title": r.get("title"),
+               "url": f"https://m.stock.naver.com/research/company/{r['researchId']}",
+               "in_signal_window": inside(d, signal_start), "basis": "네이버 게시 리포트 기준"}
+        try:
+            cur = naver_research_detail(r["researchId"])
+            row.update(opinion=cur["opinion"], goal_price=cur["goal_price"])
+            broker = [x for x in rows if x.get("brokerName") == r.get("brokerName") and x is not r]
+            same_day = [x for x in broker if x["writeDate"] == r["writeDate"]]
+            earlier = [x for x in broker if x["writeDate"] < r["writeDate"]]
+            prev = max(earlier, key=lambda x: (x["writeDate"], x["researchId"])) if earlier else None
+            if prev:
+                pd = naver_research_detail(prev["researchId"])
+                row.update(prev_date=prev["writeDate"], prev_opinion=pd["opinion"], prev_goal_price=pd["goal_price"])
+            if cur["goal_price"] is None:
+                change, reason = "unknown", "목표가 없음"
+            elif any(naver_research_detail(x["researchId"])["goal_price"] != cur["goal_price"] for x in same_day):
+                change, reason = "unknown", "같은 날 같은 증권사 리포트 복수·목표가 다름"
+            elif prev is None:
+                change, reason = "unknown", ("직전 리포트 조회 범위 밖" if truncated
+                                             else "같은 증권사 직전 리포트 없음(최초 커버리지 가능)")
+            elif (d - date.fromisoformat(prev["writeDate"])).days > PREVIOUS_MAX_DAYS:
+                change, reason = "unknown", f"직전 리포트 {PREVIOUS_MAX_DAYS}일 초과"
+            elif pd["goal_price"] is None:
+                change, reason = "unknown", "직전 리포트 목표가 없음"
+            elif Decimal(cur["goal_price"]) != Decimal(pd["goal_price"]):
+                up = Decimal(cur["goal_price"]) > Decimal(pd["goal_price"])
+                old, new = opinion_rank(pd["opinion"]), opinion_rank(cur["opinion"])
+                if cur["opinion"] != pd["opinion"] and (old is None or new is None):
+                    change, reason = "unknown", "투자의견 변경(분류 불가) — 기사 확인 필요"
+                elif cur["opinion"] != pd["opinion"] and (new > old) != up:
+                    change, reason = "unknown", "목표가·투자의견 방향 불일치 — 기사 확인 필요"
+                else:
+                    change, reason = ("up", "목표가 상향") if up else ("down", "목표가 하향")
+            elif cur["opinion"] != pd["opinion"]:
+                change, reason = "unknown", "목표가 동일·투자의견 변경 — 기사 확인 필요"
+            else:
+                change, reason = "same", "목표가·투자의견 유지"
+        except Exception as e:
+            change, reason = "unknown", f"조회 오류: {type(e).__name__}: {e}"[:200]
+        reports.append({**row, "target_change": change, "target_change_reason": reason})
+    raises = [r for r in reports if r["in_signal_window"] and r["target_change"] == "up"]
+    firms = {r["broker"] for r in raises}
+    return {"research_reports": [r for r in reports if r["in_signal_window"]],
+            "target_raises": raises, "target_raise_score": 2 if len(firms) >= 2 else len(firms),
+            "target_cuts_30d": [r for r in reports if r["target_change"] == "down"],
+            "targets_30d": [r for r in reports if r.get("goal_price")]}
 
 def kr(code):
     out = {"source": "DART OpenAPI · 네이버 금융", "errors": []}
@@ -920,9 +1001,10 @@ def kr(code):
         out["disclosures"] = out["disclosure_changes"] = out["earnings_releases"] = out["risk_disclosures"] = None
         out["errors"].append(f"DART: {type(e).__name__}: {e}"[:200])
     try:
-        out["research_reports"] = naver_researches(code)
+        out.update(naver_target_changes(code))
     except Exception as e:
-        out["research_reports"] = None
+        out["research_reports"] = out["target_raises"] = out["target_raise_score"] = None
+        out["target_cuts_30d"] = out["targets_30d"] = None
         out["errors"].append(f"네이버 리포트: {type(e).__name__}: {e}"[:200])
     return out
 
@@ -1016,7 +1098,23 @@ def discover_kr():
                                "disclosures": [], "research_reports": rows}
             else:
                 skipped.append({"code": code, "name": rows[0]["name"], "market": market})
-        research = {"reports": len(reports), "companies": len(by_code), "skipped": skipped}
+        # 리포트 후보의 목표가 상향 여부를 미리 판정해 상세 검증 한도를 상향 후보에 쓴다.
+        def check(code):
+            try:
+                return code, naver_target_changes(code), None
+            except Exception as e:
+                return code, None, f"{type(e).__name__}: {e}"[:200]
+        listed = [c for c in by_code if c in found]
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            for code, result, error in pool.map(check, listed):
+                if result:
+                    found[code]["research_reports"] = result["research_reports"]
+                    found[code]["target_raise_score"] = result["target_raise_score"]
+                else:
+                    found[code]["target_raise_score"] = None
+                    found[code]["target_check_error"] = error
+        research = {"reports": len(reports), "companies": len(by_code), "skipped": skipped,
+                    "target_check_errors": sum(1 for c in listed if found[c].get("target_check_error"))}
     except Exception as e:
         research = None
         errors.append(f"네이버 리포트: {type(e).__name__}: {e}"[:200])
@@ -1024,7 +1122,7 @@ def discover_kr():
             "candidates": sorted(found.values(), key=lambda c: c["code"]), "research": research, "errors": errors}
 
 def research_list(max_pages=20):
-    # 네이버 종목분석 리포트 전체 목록(최신순)에서 신호 기간 리포트만 모은다. 상향 여부는 기사로 확인한다.
+    # 네이버 종목분석 리포트 전체 목록(최신순)에서 신호 기간 리포트만 모은다. 상향 여부는 naver_target_changes로 판정한다.
     rows, page = [], 1
     while True:
         req = urllib.request.Request(f"https://m.stock.naver.com/api/research/company?page={page}&pageSize=100",
