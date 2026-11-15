@@ -19,6 +19,12 @@
 - 루틴의 실행 지시는 다음 한 문장으로 고정한다: `AGENTS.md 파일을 읽고 그대로 수행해.`
 - **지침 검토·수정 요청에서는 파일 작업만 한다. 브리핑 작성을 위한 자료 수집·기업 조사·Slack 게시를 시작하지 않는다.**
 
+### 규칙의 적용 범위
+
+- 실행 흐름은 [실행·게시 순서](#실행게시-순서), 판정 기준은 [기업 선정](#기업-선정), 입력·출력 형식은 해당 코드 부록을 기준으로 한다. 요약·예시가 별도 기준을 만들지는 않는다.
+- 공통 규칙의 예외는 해당 절에 명시된 경우만 적용한다. 특히 검색 보완 한도, 정형 조회 재시도, Slack 전송 재시도는 서로 다른 한도다.
+- 본문과 코드가 달라 필수 판정을 확정할 수 없으면 임의로 유리한 쪽을 택하지 않는다. 영향을 받는 후보·게시 단계를 중단하고 불일치를 기록한다. 지침 수정은 별도 요청에서만 한다.
+
 ## 작성 언어·분량·대상 시장
 
 모든 메시지는 한국어로 작성한다. 게시물은 다음 네 메시지로 구성한다.
@@ -45,7 +51,7 @@
 
 1. **실행 정보를 기록한다.** 실제 시작 시각·실행 ID·작업 경로·Git 커밋·지침 SHA-256을 남긴다.
 2. **브리핑 날짜와 기준 시각을 확정한다.** `TZ=Asia/Seoul date +%F`로 날짜를 한 번 정하고, 해당 날짜 07:00 KST를 기준 시각으로 고정한다. 실제 시작 시각이 기준 시각보다 이르면 `게시 안 함: 기준 시각 미도달`로 종료한다. 모든 조회·계산은 이 날짜와 [날짜 기준](#날짜-기준)을 따른다.
-3. **기존 게시물을 확인한다.** 채널 ID로 읽고 실패하면 `slack_search_channels`로 찾는다. 채널을 못 찾으면 오류를 남기고 종료한다. 브리핑 날짜와 중복 확인 기간의 부모 메시지를 페이지 끝까지 확인한다. 브리핑 날짜의 부모 메시지가 있으면 해당 스레드의 시장 답글·실행 정보도 확인한다.
+3. **기존 게시물을 확인한다.** 채널 ID로 읽고 실패하면 `slack_search_channels`로 찾는다. 브리핑 날짜와 중복 확인 기간 전체를 페이지 단위로 읽고, 그보다 오래된 메시지에 도달하거나 채널 끝까지 확인한다. 브리핑 날짜의 부모가 있으면 해당 스레드도 끝까지 읽는다. 채널 미발견·부분 조회·읽기 실패로 게시 상태나 중복 여부를 확정할 수 없으면 오류를 남기고 게시 없이 종료한다. 같은 날짜의 부모가 여러 개면 충돌로 기록하고 임의로 하나를 고르지 않는다.
 4. **필요한 작업을 확정한다.** 아래 표에 따라 신규 실행·복구·종료를 구분한다. 신규 또는 복구 작업이 남으면 [상태 경로를 확인하고 잠금을 확보](#게시-전-스냅샷)한다. 이후 채널·필요한 스레드를 다시 읽고, 최신 게시 상태에 따라 진행 경로를 재확인한다.
 
 | 브리핑 날짜의 게시 상태 | 진행 경로 |
@@ -75,8 +81,8 @@
 
 - 확인 불가는 통과가 아니다. 제외·보류·미조사는 순위·빈자리 충원·추천·가격 블록에서 뺀다. 기간·필수 조건을 완화하지 않는다.
 - **제외·보류 확정 → 후속 조사 중단, 미수행 단계·사유 기록.**
-- 필수 항목 미확인 → 필요한 숫자·기간·정의를 넣어 최대 2회 추가 검색 → 여전히 미확인이면 보류. 공식 실적 발표 검색으로 전환해도 추가 검색에 센다. 목표가·선택 비교 등은 해당 절의 예외를 따른다.
-- 같은 검색의 일시적 오류는 1회 재시도한다. 추가 검색 횟수와 별도이며 재실패는 조회 오류다. Slack 전송 재시도와도 별개다.
+- 필수 항목별로 최초 조회·검색 후 미확인이면 필요한 숫자·기간·정의를 넣어 최대 2회 추가 검색하고, 여전히 미확인이면 보류한다. 같은 항목의 검색어·매체·공식 실적 발표 검색으로 전환해도 한도를 새로 시작하지 않는다. 종가 복구·목표가·선택 비교의 별도 한도는 해당 절을 따른다.
+- 같은 기사 검색의 일시적 오류는 동일 검색으로 1회 재시도하며 위 추가 검색 횟수에 세지 않는다. 정형 조회는 부록의 자동 재시도를 우선 적용하고 중복 재시도하지 않는다. 자동 재시도가 없는 실패 범위는 실행자가 1회 재조회한다. 재실패는 조회 오류이며, 부록 B의 대량 조회 오류 추가 실행만 별도 예외다. 모든 시도 결과를 보존한다.
 - 비교·할인율·가격은 Python `Decimal`로 계산하고 **반올림 전 값으로 판정**한다. 표시용 등락률·상승여력·이동평균으로 판정하지 않는다.
 - 사실·수치·일정·고유명사는 검색 결과·스크립트로 확인한 것만 쓴다. 요약에 없는 본문·숫자·기간을 보완하지 않는다.
 
@@ -106,7 +112,7 @@
 | `period_end` | 실적 대상 기간 말 |
 | `valuation_date` | 평가에 쓰는 종가 거래일 |
 
-조회일을 발행일로 쓰거나 기간 말만으로 당시 공개됐다고 판단하지 않는다. 기준 시각 이후 자료는 별도 참고 기록에만 둔다.
+조회일을 발행일로 쓰거나 기간 말만으로 당시 공개됐다고 판단하지 않는다. 기준 시각 이후 **공개된 자료·변경된 값**은 별도 참고 기록에만 둔다. 이후에 조회한 자료의 사용 가능 여부는 아래 `asof` 규칙으로 판단한다.
 
 현재 EPS/BPS·동종 배수는 과거 값임을 보장하지 않는다. 제공사 갱신 시각·원자료 공개일·대상 기간·주식 수 변경을 확인해 사용값·조회 시각·적합성 근거를 `asof`에 저장한다. 07:00 이후 조회 자체는 탈락 사유가 아니지만, 필수 입력의 적합성을 확인하지 못하면 `보류: 기준 시각 이전 입력 확인 불가`다. 날짜·문자열을 고쳐 과거 값처럼 만들지 않는다.
 
@@ -131,7 +137,7 @@
 
 ## 조회 스크립트
 
-모든 스크립트의 첫 인수는 고정 브리핑 날짜다. 입력·출력·재조회·오류 계약은 각 부록이 정한다. 출력의 `error`·`warnings`·`retry`와 제공값·조회 시각을 보존하고 빠른 확인 오류는 [오류 복구 표](#빠른-확인의-오류-복구와-상세-검증-진입)를 따른다.
+조회 스크립트 B~D의 첫 인수는 고정 브리핑 날짜다. A·F는 함수 모음이고 E는 세션 경로·ID·실제 시작 시각을 받는다. 입력·출력·재조회·오류 계약은 각 부록이 정한다. 출력의 `error`·`warnings`·`retry`와 제공값·조회 시각을 보존하고 빠른 확인 오류는 [오류 복구 표](#빠른-확인의-오류-복구와-상세-검증-진입)를 따른다.
 
 | 조회 | 부록 | 판정 규칙 |
 |---|---|---|
@@ -157,9 +163,11 @@
 
 탐색 결과는 후보 조회와 같은 근거로 쓴다. 발견 후보 전부를 시장·종목코드/티커로 병합하고, 코드 미확인은 시장·회사명 임시 키로 남긴다. 같은 기업의 기사·신호를 중복 가산하지 않는다. 탐색 실패를 발견 0개로 처리하지 않는다.
 
+식별자·상장 시장이 미확인이면 먼저 공통 검색 보완 한도 안에서 확인한다. 끝내 확인하지 못하면 `보류: 식별자·상장 시장 미확인`으로 기록하고 임시 키를 시세 스크립트에 넣지 않는다. 확인된 조사 범위 밖 종목은 별도 탐색 기록에 보존하며 후보 집계에서 뺀다. 상장 확인 실패를 범위 밖으로 간주해 누락하지 않는다.
+
 **빠른 확인: 발견 후보 전체, 한도 없음**
 
-중복 확인 → 중복 제외가 아닌 전체의 시세 조회 → 중복·급등·시세 오류·추세 미충족 없는 전체의 가치·실적 조회 → 저평가 1~3단계·잠정 실적 지속성. 추세 `false`·지속성 `false`·조회 오류의 판정은 아래 복구 표를 따른다. 실행 제한 시 나눠 조회하고 끝내 못 마친 후보만 `미조사: 실행 제한(빠른 확인)`과 막힌 원인(도구 오류 원문·시간 초과 등)을 남긴다.
+[신규 실행 6단계](#신규-실행-브리핑-날짜의-부모-메시지가-없을-때)의 순서를 적용한다. 시가총액만 오류인 경우는 가치·실적 조회를 계속하며, 나머지 오류·잠정 판정의 처리는 아래 복구 표를 따른다. 실행 제한 시 나눠 조회하고 끝내 못 마친 후보만 `미조사: 실행 제한(빠른 확인)`과 막힌 원인(도구 오류 원문·시간 초과 등)을 남긴다.
 
 한국 리포트만으로 발견한 후보(DART 긍정 공시·기사 신호 없음)는 **신호 기간 리포트 1개 이상·목록/목표가 비교 완전·전부 `down`/`same`**일 때만 `제외: 신호 요건 미충족(목표가 유지·하향)`이다. 빈 목록·부분 조회·오류는 신호 부재가 아니다. 비교 `passed: null`·지속성 `error`/미확인·목표가 비교 `unknown`만으로 여기서 제외하지 않는다.
 
@@ -170,12 +178,12 @@
 | 순서 | 빠른 확인 결과 |
 |---|---|
 | ① | 저평가 비교 통과·지속성 `true` |
-| ② | 저평가 비교 통과·지속성 `error`/미확인(새 결산기 예외의 `false` 포함) |
-| ③ | 저평가 미확인(종가 복구 대기 포함)·지속성 `true`/`error`/미확인 |
+| ② | 저평가 비교 통과·지속성 `error`/미확인(새 결산기 예외 적용 포함) |
+| ③ | 저평가 미확인(EPS/BPS·금융 동종 PBR 보완, 종가 복구 대기 포함)·지속성 `true`/`error`/미확인 |
 
-한국 잠정 지속성은 [DART 우선 규칙](#실적-지속성--필수)을 적용한다. 금융·보험은 일반기업용 `sustainability`로 통과·제외하지 않고 지속성 미확인으로 둔다.
+여기서 `저평가 비교 통과`는 저평가 1~3단계를 마친 잠정 등급 1~2이며, 금융·보험은 동종 PBR 통과까지 필요하다. 한국 잠정 지속성은 [DART 우선 규칙·새 결산기 예외](#실적-지속성--필수)를 적용한다. 금융·보험은 일반기업용 `sustainability`로 통과·제외하지 않고 지속성 미확인으로 둔다.
 
-그룹 안에서는 **스크립트 저평가 등급 → 잠정 지속성 등급 → 신호 사전 근거 → 최근 확인 사건일** 내림차순, 마지막은 **코드/티커 오름차순**이다. 저평가 등급은 아래 PER 비교 조합 규칙으로 정하며, 한 비교의 실패만으로 다른 비교의 통과를 무효화하지 않는다. 등급·사건일 미확인은 마지막이다.
+그룹 안에서는 **스크립트 저평가 등급 → 잠정 지속성 등급 → 신호 사전 근거 → 최근 확인 사건일** 내림차순, 마지막은 **코드/티커 오름차순**이다. 등급은 각각 2 → 1 → 미확인 순이며 새 결산기 예외로 무효화한 과거 등급은 쓰지 않는다. 사건일 미확인도 마지막이다. 저평가 등급은 아래 PER 비교 조합 규칙으로 정한다.
 
 - 미국 사전 근거: 스크립트 EPS 상회 2점 + `target_raise_score`. 기사만으로 발견한 후보는 0점.
 - 한국 사전 근거: `target_raise_score` + DART 긍정 공시나 기사 신호 사실이 있으면 1점. 상향 없이 `unknown` 리포트만 있으면 0점.
@@ -192,8 +200,9 @@
 | 종가 최상위 `error`, 추세 통과·필수 값 정상 | `종가 복구 대기`, 가치 조회 대기. 잠정 그룹 ③ 순서로 [기사 종가 복구](#종가-조회-실패-시) 착수. 성공 후 가치 조회·그룹 재판정·남은 검증 | 기사 종가 보완 착수부터 1개, 재분류해도 중복 계산 금지 |
 | 추세 `error`·누락이 정해진 재조회 뒤에도 미해결 | 보류. 기사 종가로 추세 대체 금지 | 빠른 확인 확정이면 미계산 |
 | 시가총액만 오류 | 조사 계속, 미확인 표시 | 일반 후보와 동일 |
-| 가치 최상위 `error`로 필수 EPS/BPS 등 조회 불가 | 오류 원문 보존·보류 | 빠른 확인 확정이면 미계산 |
-| 지속성 `false`(새 결산기 예외 아님) | `제외: 실적 지속성 미충족(최신 분기 영업이익/영업현금흐름 음수)` | 미계산 |
+| 가치 최상위 `error`로 필수 EPS/BPS 등 조회 불가 | 정해진 재조회 뒤 오류 원문 보존·보류. 성공 응답의 개별 값 누락과 구분 | 빠른 확인 확정이면 미계산 |
+| 가치 조회 성공·필수 EPS/BPS 개별 값 누락 | 저평가 미확인으로 그룹 ③에서 허용된 기사·공식 발표 보완. 확인된 EPS 0 이하는 보완 대상 아님 | 보완 착수 시 계산 |
+| 지속성 `false`(새 결산기 예외 아님) | `제외: 실적 지속성 미충족(영업이익/영업현금흐름 0 이하)`. 실제 적용한 분기/누적 기준도 기록 | 미계산 |
 | 비교 `passed: null`, 지속성 `error`/미확인·새 결산기 예외, 목표가 비교 `unknown` | 지정 그룹에서 기사 보완 | 기사 검증 착수 시 계산 |
 
 종가 복구 대기도 발견·빠른 확인 기록에 포함한다. 복구 실패는 보류·후속 중단, 한도·실행 제한은 위 미조사 규칙을 따른다. 복구 가능한 오류를 확정 보류로 처리하거나 확정 보류를 순위에 넣지 않는다.
@@ -222,8 +231,8 @@
 
 - 시장별 `발견 = 선정 + 적격 미선정 + 제외 + 보류 + 미조사`를 코드로 검증한다. 단계별 진입/통과·대표 사유별 수는 따로 집계하며 같은 후보를 같은 집계에 두 번 세지 않는다.
 - 미조사 대표 사유는 `조사 한도(그룹 번호)`·`실행 제한(빠른 확인)`·`실행 제한(상세 검증)`을 구분한다. 시장 탐색 실패는 후보 수가 아닌 검색 오류다.
-- `error`·`warnings`·`retry`의 출처·예외명·메시지를 그대로 저장한다. 200자 제한 출력은 `도구 출력(최대 200자)`로 표시하며 전체 원문이라고 쓰거나 원인을 추정하지 않는다.
-- 조회 오류는 `출처·예외 이름`별로 묶어 건수·출력 예시 1개를 남긴다(예: `Yahoo Finance: YFRateLimitError`, `ValueError: 종가 기준일 불일치`). 조회 오류 보류의 대표 사유와 `unresolved_errors.type`에 이 이름을 쓰며, Slack에는 시장 상태 뒤에 상위 2개 유형이 자동 표시된다.
+- `error`·`warnings`·`retry`의 출처·예외명·메시지를 저장하되 API 키 등 비밀값은 마스킹한다. 이하 `오류 원문`도 비밀값을 제거한 기록을 뜻한다. 200자 제한 출력은 `도구 출력(최대 200자)`로 표시하며 전체 원문이라고 쓰거나 원인을 추정하지 않는다.
+- 조회 오류는 `출처·예외 이름`별로 묶어 건수·출력 예시 1개를 남긴다(예: `Yahoo Finance: YFRateLimitError`, `ValueError: 종가 기준일 불일치`). 조회 오류 보류의 대표 사유와 `unresolved_errors.type`에 이 이름을 쓴다. 해결된 오류와 선택 항목만의 오류는 원시 기록에 보존하되 `unresolved_errors`에 넣지 않는다. 미해결 필수 오류가 있으면 시장 상태의 종류와 무관하게 그 뒤에 상위 2개 유형을 표시한다.
 - 상태·사유 집계는 스냅샷의 **집계 객체 하나**로 관리한다. 부모·빈 시장·실행 정보의 진단은 모두 여기서 생성한다. 주요 사유는 건수 내림차순 → 사유명 오름차순이며 메시지별로 바꾸지 않는다.
 
 시장 상태는 아래에서 **처음 해당하는 값**이다. 복수 사유는 모두 보존한다.
@@ -285,21 +294,21 @@
 
 **빠른 확인: 1~3단계**
 
-1. **주 지표**: 일반 기업 PER, 금융·보험 PER과 동종 PBR. 일반 기업 PBR은 참고다. 제공사 업종·회사 소개로 리츠 확인 시 `제외: 리츠(저평가 판정 미지원)`(FFO 비교 미지원). 공통으로 EPS 0 이하는 `제외: 저평가 미충족(EPS 0 이하로 PER 근거 없음)`, EPS 자체 미확인·조회 실패는 보류다.
+1. **주 지표**: 일반 기업 PER, 금융·보험 PER과 동종 PBR. 일반 기업 PBR은 참고다. 제공사 업종·회사 소개로 리츠 확인 시 `제외: 리츠(저평가 판정 미지원)`(FFO 비교 미지원). 공통으로 확인된 EPS 0 이하는 `제외: 저평가 미충족(EPS 0 이하로 PER 근거 없음)`이다. 성공 응답의 필수 EPS/BPS 누락은 그룹 ③에서 보완하고, 최상위 조회 실패와 보완 후 미확인은 오류 복구 표에 따라 보류한다.
 2. **잠정 판정**: 동종·자사 과거 PER 두 비교의 `passed`를 모두 기록한다. `null`·표본 부족·누락은 미확인이며, 누락 비교도 `passed: null`과 사유를 남긴다. 3단계까지 점검한 뒤 둘 다 `true`면 잠정 등급 2, 하나만 `true`면 다른 비교가 `false`/`null`이어도 잠정 등급 1로 조사한다. 둘 다 `false`면 `제외: 저평가 미충족(PER 두 비교 모두 실패)`, 통과 없이 미확인 비교가 남으면 저평가 미확인으로 그룹 ③에 둔다. 금융·보험의 동종 PBR은 별도 필수로, `false`면 PER 통과와 무관하게 제외하고 `null`이면 보완한다. 일반 기업 참고 PBR 실패는 제외 사유가 아니다.
 3. **비교 가능성**: 할인율 50% 이상은 스크립트가 `null` 처리한다. 명백히 다른 사업(지주사·적자 회복기 등)이 중앙값을 좌우하면 통과/실패와 무관하게 미확인으로 바꾼다. 과거 연간 EPS가 최근 4분기 EPS의 절반 미만·미확인이어도 과거 비교 미확인이다. 종목·연도 일부를 빼 재계산하거나 50% 기준을 바꾸지 않는다.
 
 **상세 검증: 4~5단계**
 
 4. **할인 이유**: 30일 기사·공식 발표에서 `회사명 일회성 OR 처분이익 OR 평가이익 OR 환급 OR 법인세 효과` / `티커 one-time gain OR one-time benefit OR non-recurring OR tax benefit OR refund OR impairment` 검색. 최근 4분기 이익에 일회성 이익·환급·세금 효과가 포함되면 금액·영향 확인 여부와 무관하게 PER 비교를 미확인으로 바꾼다. 해당 효과를 뺀 정상 이익 기준 기사 비교가 없으면 보류한다. 리스크 문구로 대신 통과시키지 않는다. 금융·보험 PBR은 ROE 양수(한국 최근 실제 회계연도 `history.roe`, 미국 Yahoo 최근 12개월 `roe`)·자산 부실 기사 미발견을 확인한다.
-5. **선택 보충**: 미확인 비교는 `회사명 밸류에이션 동종업계 PER PBR` / `티커 valuation peers historical multiple`로 30일 기사 검색. 지표 정의·실제/예상·기간·회계·평가일을 확인한다. 직전 종가 기준이 아니면 기준주가·EPS/BPS가 함께 있고 이후 실적·주식 수 변경이 없을 때만 `기사 배수 × 직전 종가 ÷ 기사 기준주가`로 보정하고 원값·보정값·전제를 기록한다. `저평가` 표현·목표가 괴리·고점 대비 하락만으로 인정하지 않는다.
+5. **비교 보충**: 미확인 비교는 `회사명 밸류에이션 동종업계 PER PBR` / `티커 valuation peers historical multiple`로 30일 기사 검색. PER 통과가 없거나 금융 동종 PBR이 미확인이면 필수 보완으로 공통 추가 검색 한도를 적용한다. 이미 필수 비교가 확보된 뒤 나머지 PER 비교의 보충은 선택이며, 미확인으로 남겨도 등급 1이 가능하다. 지표 정의·실제/예상·기간·회계·평가일을 확인한다. 직전 종가 기준이 아니면 기준주가·EPS/BPS가 함께 있고 이후 실적·주식 수 변경이 없을 때만 `기사 배수 × 직전 종가 ÷ 기사 기준주가`로 보정하고 원값·보정값·전제를 기록한다. `저평가` 표현·목표가 괴리·고점 대비 하락만으로 인정하지 않는다.
 
 | 최종 판정 | 조건 |
 |---|---|
 | 등급 2 | PER 동종·자사 과거 모두 통과 |
 | 등급 1 | PER 둘 중 하나만 통과. 다른 비교의 실패·미확인을 모두 기록하며, 실패 하나만으로 제외하지 않음 |
 | 금융 추가 필수 | 동종 PBR 통과·ROE 양수·자산 건전성 확인. PBR은 PER을 대신하지 않음 |
-| 제외 | PER 두 비교 모두 실패 또는 금융·보험의 동종 PBR 실패. 일반 기업 참고 PBR 실패는 제외 사유 아님 |
+| 제외 | PER 두 비교 모두 실패 또는 금융·보험의 동종 PBR 실패·ROE 0 이하. 일반 기업 참고 PBR 실패는 제외 사유 아님 |
 | 보류 | PER 통과 없이 하나 이상 미확인(실패+미확인 포함), 금융 PBR/ROE/건전성 미확인, 할인 이유 점검 미완료, 최상위 조회 실패 |
 
 등급은 비교 가능성·할인 이유까지 통과한 최종 값이다. 후속 점검으로 비교 판정이 바뀌면 두 비교 조합과 등급을 다시 판정한다. 통과하지 못한 비교의 수치·사유를 숨기거나 통과 비교만 남기지 않는다. 부분 비교·지속성 오류의 보완은 [오류 복구 표](#빠른-확인의-오류-복구와-상세-검증-진입)를 따른다.
@@ -318,7 +327,7 @@
 - **매수상한 = 보수 기준가치 × 0.80**, **진입가 = min(매수상한, 직전 종가)**. 20%는 고정 운영 안전마진이며 최적값·손실 방지 장치가 아니다. 근거 부족을 마진 확대로 통과시키지 않는다.
 - 종가 ≤ 매수상한이면 `가격조건 충족`, 초과면 `진입대기`. 브리핑 기준 상태이며 실시간 매수 신호가 아니다. 이후 실적·주식 수·추정치·위험·추세 근거 변경 시 가격을 폐기한다.
 - EPS/BPS·비교배수 부족은 진입가 산출 불가로 보류한다. 목표가 할인·종가·차트로 대체하지 않는다.
-- 각 `valuation_bases`에 `method`·`per_share`·`benchmark`·부록 A의 필수 `evidence`를 넣는다. 제공 출력의 `per_share_date`·`benchmark_date`는 조회일, 기사 근거는 발행일이므로 공개 시각·기준 시각 적합성은 `asof`로 따로 확인한다. 정규화·비교 가능성·경계 시각은 검색 결과와 대조하며 계산기 통과로 대신하지 않는다.
+- 각 `valuation_bases`에 `method`·`per_share`·`benchmark`·부록 A의 필수 `evidence`를 넣는다. `per_share_date_kind`·`benchmark_date_kind`는 제공값이면 `retrieved`, 기사이면 `published`로 각각 구분한다. 이에 따라 `per_share_date`·`benchmark_date`에는 조회일/발행일을 넣는다. 조회일에 기사 30일 제한을 적용하지 않으며, 공개 시각·기준 시각 적합성은 `asof`로 따로 확인한다. 스크립트가 생성한 회계·통화·주당 단위 설명도 확인 전에는 잠정 메타데이터다. 실제 출처와 대조하고 계산기 통과로 대신하지 않는다.
 
 ### 실적 지속성 — 필수
 
@@ -331,15 +340,16 @@
 | 더 새 결산기의 30일 기사·공식 발표 | 제공값보다 우선. 같은 기간 영업이익과 영업현금흐름(또는 정의 명시 FCF) 모두 확인. 누적이면 표시하고 최신 분기 영업이익 양수를 별도 확인 |
 | 금융·보험 | 일반 `sustainability` 대신 최신 실제 순이익 양수·적용 규제자본비율 최소 기준 충족을 30일 기사·공식 발표로 확인. 미확인은 보류 |
 
-- 분기·누적·연간 혼합이나 차감으로 새 분기 수치를 만들지 않는다. 새 결산기 현금흐름 미확인은 이전 분기로 후퇴하지 않고 보류한다. 한국 새 잠정실적이 있으나 `filed_for_latest_quarter == false`이고 기사 현금흐름도 없으면 `보류: 새 결산기 현금흐름 미공시(정기보고서 미제출)`이다.
-- 일반 기업의 잠정 `eligible == false`(DART 우선 규칙 적용 후)는 빠른 확인에서 `제외: 실적 지속성 미충족(최신 분기 영업이익/영업현금흐름 음수)`이다. **새 결산기 예외**: 신호 기간 실적 발표(미국 `latest_earnings`, 한국 `earnings_releases`)의 사건일이 잠정 판정 `period_end` 다음 분기 말보다 늦으면 그 판정은 이전 결산기 기준이므로 지속성 미확인으로 두고 상세 검증에서 새 결산기를 확인한다. 예외 후보도 필수 양수 조건 미충족 확인은 제외, 필수 수치·기간 미확인은 보류다. 일회성 설명으로 음수를 양수 취급하거나 이전 분기로 통과시키지 않는다.
+- 분기·누적·연간 혼합이나 차감으로 새 분기 수치를 만들지 않는다. 새 결산기 현금흐름 미확인은 이전 분기로 후퇴하지 않고 보류한다. 한국 새 잠정실적의 **해당 결산기 정기보고서 미제출**을 확인했고 기사 현금흐름도 없으면 `보류: 새 결산기 현금흐름 미공시(정기보고서 미제출)`이다. `filed_for_latest_quarter == false`는 달력 분기 기준의 단서이므로 해당 기업의 실제 결산기와 대조한다.
+- **새 결산기 예외를 먼저 확인한다.** 발견·조회 자료의 실적 발표 대상 기간이 잠정 판정 `period_end`보다 새로우면 기존 `eligible`의 참·거짓과 등급을 쓰지 않고 지속성 미확인으로 둔다. 발표일이 `period_end` 다음 분기 말보다 늦다는 사실은 새 결산기 가능성의 단서이며 대상 기간의 확정 근거가 아니다. 새 결산기 가능성이 있는 발표의 대상 기간을 모르면 상세 검증에서 확인하고, 끝내 미확인이면 보류한다. 달력 분기를 비표준 결산기의 실제 분기로 가정하지 않는다.
+- 위 예외와 DART 우선 규칙을 적용한 일반 기업의 필수 이익·현금흐름 중 하나라도 **0 이하**이면 `제외: 실적 지속성 미충족(영업이익/영업현금흐름 0 이하)`다. 적용한 분기/누적 기준을 함께 기록한다. 새 결산기 예외 후보도 최신 필수 수치가 0 이하이면 제외, 수치·기간 미확인은 보류다. 일회성 설명으로 0 이하를 양수 취급하거나 이전 분기로 통과시키지 않는다.
 - 처분/평가이익·운전자본 일시 회수 의존 기사가 있으면 반복 가능한 이익·현금 창출 근거를 추가 확인한다.
 - 대규모 투자가 가치평가 핵심이면 투자금·확정/미확정 자금·조달 방식(차입/임대/증자)·비용을 확인한다. 핵심 자금 미확정·비용 반영 평가 근거 없음은 보류다. `증자 계획 없음`을 자금 확보로 해석하지 않는다.
 
 | 등급 | 조건 |
 |---|---|
 | 2 | 필수 조건 통과 + 전년 동기 이익·현금흐름 모두 유지/개선(`yoy` 두 값 `true`) + 최근 4분기 영업현금 유출 없음(`ocf_negative_quarters_4q == 0`, `null` 불가). 기사 판정도 4분기 확인 필수. 업종 대체 지표는 이익·건전성 모두 유지/개선 |
-| 1 | 필수 조건 통과 + 전년 비교 없음, 유출 분기 있음, 또는 악화 원인·반복 가능성 기사 확인. 유출 분기·금액은 리스크 줄에 표시 |
+| 1 | 필수 조건 통과 후 등급 2 조건 미충족. 전년 비교·4분기 유출 횟수 미확인은 최대 1이며, 확인된 전년 동기 악화가 있으면 원인·반복 가능성 기사 확인까지 필요. 확인한 유출 분기·금액은 리스크 줄에 표시 |
 | 보류 | `yoy` 악화 원인 미확인 또는 필수 근거 부족 |
 
 ### 하락 추세 완화 — 필수
@@ -366,9 +376,9 @@
 
 | 확인 내용 | 판정 |
 |---|---|
-| 30일 기사·DART의 해당 기업 실적 하회·가이던스 하향·희석 공시 | 제외 |
+| 30일 자료의 해당 기업 실적 하회·가이던스 하향·신규 유효한 희석 공시 | 제외. 실적은 같은 지표·기간·회계 기준 실제/컨센서스, 가이던스는 회사의 기존/새 값으로 확인. DART 목록은 단서로 사용하고 정정·철회 관계나 제목만으로 사실이 불명확하면 기사 보완 |
 | 증권사·발표일·동일 지표/기간 기존·새 이익 추정치 하향 | 보류. 이후 같은 기준 유지/상향과 하향 이익 반영 새 저평가 근거를 모두 확인해야 재검토. 주가 추가 하락만으로 통과 금지 |
-| 지속적 실제 현금 유출·구조적 악화 | 실적 지속성 규칙으로 제외 |
+| 기사로 확인된 지속적 실제 현금 유출·구조적 악화 | 실적 지속성 규칙으로 제외. 과거 유출 분기가 있다는 사실만으로 자동 제외하지 않고 지속성 등급 규칙과 구분 |
 | 핵심 자금조달 미확정·비용 미반영 | 실적 지속성 규칙으로 보류 |
 | 필수 검색 실패·악재 발행일/대상/사건 미확인 | 점검 미완료로 보류, 다른 후보 조사 |
 | 네 검색 정상 완료·근거 미발견 | `해당 검색에서 제외·보류 사유 미발견`. `위험 없음`·`안전` 표현 금지. 실적의 긍정 수치 확인과 별개 |
@@ -399,11 +409,11 @@
 2. 누락이 있으면 [공통 시작](#공통-시작)의 상태 경로 확인·잠금 확보를 마치고 다시 읽는다. 부모의 기업·순서를 유지하며 이미 게시된 항목은 건너뛴다.
 3. 채널·날짜·부모 원문이 일치하는 스냅샷에서 원래 저평가·지속성·추세·`confidence`, 가격 규칙 버전·`levels()` 전체 입력·목표가 값/미확인을 복원한다. 스냅샷이 없으면 원래 세션·게시된 답글에서 **기준 시각 이전 모든 입력·판정**을 확인한 경우만 복원한다. 새 시세·목표가·EPS/BPS·배수나 부모 상승여력 역산으로 대체하지 않는다.
 4. **미게시 기업 답글만** 원래 기준 시각·30일 범위로 위험 네 묶음을 재점검한다. 신규 탐색 금지의 제한적 예외이며 다른 원래 입력은 새 조사로 보충하지 않는다. 빈 시장·실행 정보만 복구하면 위험 재점검도 하지 않는다.
-5. 저장된 가격 규칙 버전의 `levels()`를 해당 실행의 지침 기록·Git 커밋에서 복원해 재계산하고 저장 가격·상태·부모 상승여력과 대조한다. 가격 기간은 부모 날짜 + 28일이다. 신규 선정의 완화된 PER·상승여력 규칙을 과거 판정에 소급 적용하지 않는다.
+5. 원래 지침·검증 버전과 가격 규칙 버전의 `levels()`를 해당 실행의 지침 기록·Git 커밋에서 복원해 재계산하고 저장 가격·상태·부모 상승여력과 대조한다. 가격 기간은 부모 날짜 + 28일이다. 현재의 신규 선정·검증 규칙을 과거 스냅샷에 소급 적용하지 않는다. 복구 메시지도 URL 포함 3,000자 이하와 복원 근거를 확인하되 현재 신규 검증기에 맞추려고 원래 값을 바꾸지 않는다.
 6. 아래 실패 조건이면 해당 위치에 `회사명 — 보류: 사유`만 쓴다. 대체 기업·가격 블록은 넣지 않는다.
-7. 전송 직전 채널·스레드를 다시 읽고 누락분만 게시한다. 실행 정보는 원래 진단·사용량을 복원해 마지막에 보낸다. [실패·재시도](#실패재시도)·[종료 기록](#최종-결과)을 따른다.
+7. 전송 직전 채널·스레드를 다시 읽고 누락분만 게시한다. 실행 정보는 아직 없을 때 원래 진단·사용량을 복원해 시장 답글 게시 시도 뒤에 보낸다. 이미 게시된 실행 정보는 수정·재게시하지 않으므로 이후 복구된 시장 답글이 그 뒤에 올 수 있다. [실패·재시도](#실패재시도)·[종료 기록](#최종-결과)을 따른다.
 
-복구 실패 조건: 입력·판정·원래 계산 코드 복원 불가, `value-entry-v1`·`value-entry-v2` 이외의 가격 방식, 재계산 불일치, 원래 기준 시각의 필수 조건·위험 재점검 미통과. 복구 중 기준 시각 **이후** 제외·보류 근거를 별도로 확인해도 보류 문구를 쓰고 원래 판정과 구분해 기록한다.
+복구 실패 조건: 입력·판정·원래 계산 코드 복원 불가, `value-entry-v1`·`value-entry-v2` 이외의 가격 방식, 재계산 불일치, 원래 기준 시각의 필수 조건·위험 재점검 미통과. 기준 시각 이후 자료를 적극 탐색하지는 않되, 복구 중 **이후 공개된** 제외·보류 근거를 확인하면 보류 문구를 쓰고 `복구 시점 추가 차단`으로 기록한다. 이후에 조회했더라도 기준 시각 이전 공개 자료이면 원래 판정의 재점검 근거로 구분한다.
 
 빈 시장의 원래 진단 복원 불가는 `조사 상태: 원래 조사 기록 복원 불가`로 쓰고 건수를 추정하지 않는다. 이전 검증 버전·필드 누락을 이유로 새 조사로 덮어쓰거나 부모를 재생성하지 않는다.
 
@@ -420,7 +430,7 @@
 | 파일 | 저장 규칙 |
 |---|---|
 | `runs/YYYY-MM-DD/실행ID.json` | 후보·검색·오류를 단계마다 저장. 선정 0개·게시 실패·재실행도 보존 |
-| `YYYY-MM-DD.json` | 부모 전송 전 UTF-8 스냅샷. `schema_version: brief-state-v2`, `validation_version: brief-check-v3`. 저장·재검증은 [생성 절차](#메시지-생성과-검증)를 따른다. 기존 부모에 연결된 스냅샷을 새 조사로 덮어쓰지 않음 |
+| `YYYY-MM-DD.json` | 부모 전송 전 UTF-8 스냅샷. `schema_version: brief-state-v2`, `validation_version: brief-check-v4`. 저장·재검증은 [생성 절차](#메시지-생성과-검증)를 따른다. 기존 부모에 연결된 스냅샷을 새 조사로 덮어쓰지 않음 |
 
 가격·반올림 전 비율은 소수 문자열, 표시 정수 퍼센트·건수는 코드 반환형, 날짜는 `YYYY-MM-DD`, 시각은 시간대·초 포함 ISO 8601을 쓴다.
 
@@ -433,7 +443,7 @@
 | 진입가 근거 | `levels()` 입력(`valuation_bases` 전체)과 결과(가격 규칙 버전·각 기준가치·보수 기준가치·목표가 상한 반영·매수상한·진입가·상태·손절·수익실현) |
 | 게시 내용 | 한국·미국 답글 원문(분할 순서 포함)·실행 정보용 확정 진단·메시지별 게시 여부·`ts`·시도 횟수·전송 오류 |
 
-전송 확인 시 게시 결과·`parent_ts`를 즉시 갱신한다. 복구 스냅샷 대조는 도구의 Markdown 변화만 정규화하며 회사명·순서·수치는 그대로 확인한다. `parent_ts`가 있으면 실제 부모 `ts`와 일치해야 하고, `null`이면 대조한 `ts`를 연결한다. 저장 답글도 재검토 후 전송한다.
+최초 저장과 전송 결과 갱신 모두 임시 파일 작성 후 `os.replace`로 원자적으로 저장한다. 전송 확인 시 게시 결과·`parent_ts`를 즉시 갱신한다. 복구 스냅샷 대조는 도구의 Markdown 변화만 정규화하며 회사명·순서·수치는 그대로 확인한다. `parent_ts`가 있으면 실제 부모 `ts`와 일치해야 하고, `null`이면 대조한 `ts`를 연결한다. 저장 답글도 재검토 후 전송한다.
 
 상태·조사·잠금 파일은 Git 추가·커밋·푸시 금지다. 필요하면 로컬 `.git/info/exclude`에 경로를 넣는다.
 
@@ -445,8 +455,8 @@
 
 1. 부록 A·F를 **동일 Python 프로세스**에 로드한다. F는 조회·게시·파일 변경을 하지 않는 함수 모음이다.
 2. `snapshot["aggregation"] = aggregate_snapshot(snapshot)` 후 `snapshot["messages"] = render_messages(snapshot, snapshot["aggregation"])` 실행. 집계·가격을 수기로 다시 쓰지 않는다.
-3. `validate_snapshot(snapshot)` → [게시 전 점검](#게시-전-점검) → 임시 파일·`os.replace` 저장 → JSON 다시 읽기·같은 함수 재검증. 실패 해결 전 부모 전송 금지.
-4. 신규 게시에는 `messages` 원문을 그대로 쓴다. 실행 정보는 `⚙️ 실행 정보` + `execution_diagnostics` 원문 + 확인한 사용량·시각·모델·기록 줄로 만든다. `validate_execution_message(snapshot, text)`로 진단 일치·URL 포함 3,000자 이하를 검증하고 `execution_message`에 전체 원문을 저장·전송한다.
+3. `validate_snapshot(snapshot)` → [게시 전 점검](#게시-전-점검) → 임시 파일·`os.replace` 저장 → JSON 다시 읽기·같은 함수 재검증. 실패 해결 전 부모 전송 금지. 이 시점에는 부모·시장 답글·실행 진단을 확정하며 아직 발생하지 않은 게시 시각을 만들지 않는다.
+4. 신규 게시에는 `messages` 원문을 그대로 쓴다. 시장 답글 게시 시도를 마친 뒤 실행 정보는 `⚙️ 실행 정보` + `execution_diagnostics` 원문 + 확인한 사용량·시각·모델·기록 줄로 만든다. `validate_execution_message(snapshot, text)`로 진단 일치·URL 포함 3,000자 이하를 검증하고 `execution_message`에 전체 원문을 저장·전송한다.
 
 검증기 통과는 근거 대조를 대신하지 않는다([게시 전 점검](#게시-전-점검)). 가격·상승여력은 생성 줄에만 두고 `display` 설명·포인트에 중복 기재하지 않으며, EPS/BPS·배수는 `basis_detail`에 쓴다. 복구에는 신규 생성 절차 대신 [복구 절차](#중복-방지와-재실행)를 적용한다.
 
@@ -457,7 +467,7 @@
 - 메시지마다 URL 포함 **3,000자 이하**를 코드로 확인한다. 신규 시장 답글은 각각 1개, 기업·추세·가격 블록 분할 금지. 필수 근거를 유지해 줄인 뒤 재생성·검증하며 끝내 초과하면 부모 게시 전 중단한다. 이전 분할 답글은 복구만 지원한다.
 - 표준 Markdown: `**굵게**`, `_기울임_`, `[링크](URL)`. 한국 회사명은 한글, 미국은 영문이며 부모·답글 표기/순서를 맞춘다.
 - 주가·등락률에 기준일·종가/장중/시간외를 밝히고 혼합하지 않는다. 매매 권유·주가/실적 예측은 금지다. 전망은 주체를 밝힌 인용만 허용하며 가격 움직임을 펀더멘털 근거로 쓰지 않는다.
-- 빈 시장은 헤더 아래 `_이번 조사에서 선정한 기업 없음_`과 진단을 쓴다. 부모는 `조사 상태: 시장 상태 · 주요 사유 최대 2개(건수)` 한 줄(조회 오류면 상태 뒤 괄호에 오류 유형·건수), 답글은 아래 [빈 시장 답글](#기업-답글) 형식이다. 발견 0개는 탐색 정상 완료 여부를 밝힌다. 시장 전체에 적격 기업이 없다는 뜻으로 쓰지 않는다.
+- 빈 시장은 헤더 아래 `_이번 조사에서 선정한 기업 없음_`과 진단을 쓴다. 부모는 `조사 상태: 시장 상태 · 주요 사유 최대 2개(건수)` 한 줄, 답글은 아래 [빈 시장 답글](#기업-답글) 형식이다. 미해결 필수 오류가 있으면 상태 뒤 괄호에 오류 유형·건수를 표시한다. 발견 0개는 탐색 정상 완료 여부를 밝힌다. 시장 전체에 적격 기업이 없다는 뜻으로 쓰지 않는다.
 
 ### 부모 메시지
 
@@ -514,7 +524,7 @@ _10/30 종가 71,200원 (네이버) 기준 · 11/30까지 유효_
 
 투자 포인트는 **정확히 3줄, 각 한 문장**이다. `신호`·`저평가·실적`·`리스크` 굵은 라벨은 생성 코드가 붙이므로 `points` 문장에 쓰지 않는다. 추세값 `adjusted_close`·`ma60`·`ma60_20_sessions_ago`는 종가 단위로 반올림해 표시한다.
 
-빈 시장 답글은 헤더 → 빈 섹션 문구 → `조사 상태: 시장 상태(조회 오류면 오류 유형·건수)` → `발견 n · 선정 n · 적격·순위 밀림 n · 제외 n · 보류(근거 부족) n · 미조사(시간·한도) n` → `주요 사유: 최대 2개(건수)`를 각각 별도 줄로 쓴다. 집계 객체의 실행 정보 값과 일치해야 하며 빈 답글도 해당 시장의 게시 완료로 센다.
+빈 시장 답글은 헤더 → 빈 섹션 문구 → `조사 상태: 시장 상태(미해결 필수 오류가 있으면 유형·건수)` → `발견 n · 선정 n · 적격·순위 밀림 n · 제외 n · 보류 n · 미조사 n` → `주요 사유: 최대 2개(건수)`를 각각 별도 줄로 쓴다. 집계 객체의 실행 정보 값과 일치해야 하며 빈 답글도 해당 시장의 게시 완료로 센다.
 
 ### 가격 블록
 
@@ -532,7 +542,7 @@ _10/30 종가 71,200원 (네이버) 기준 · 11/30까지 유효_
 1. 30일 내 증권사·애널리스트 목표가 사용. 미국은 `targets_30d` 우선·`[Yahoo Finance](https://finance.yahoo.com/quote/티커/analysis)`·조회일 표시, 한국은 `targets_30d` 우선·해당 리포트 `url`의 `[네이버 리포트](url)` 표시.
 2. 없으면 기사, 선정 기사에도 없으면 `회사명 목표주가` / `티커 price target` 추가 검색. 확인값 전부와 채택 이유를 저장한다.
 3. 최근 발표 KST 날짜 → 같은 날 낮은 목표가 → 증권사명 오름차순으로 채택한다. 상승여력 큰 값을 고르지 않는다.
-4. 미확인은 `🎯 목표주가 미확인`. 컨센서스 평균·오래된 값으로 채우지 않는다.
+4. 위 조회·추가 검색 후 미확인은 `🎯 목표주가 미확인`. 목표가는 선택 항목이므로 공통 필수 항목의 추가 2회 검색을 더 하지 않으며, 이 항목만의 조회 실패로 후보를 보류하지 않는다. 컨센서스 평균·오래된 값으로 채우지 않는다.
 
 목표가는 보통 6~12개월 기준이므로 4주 수익실현가로 쓰지 않는다. +16%·−8%는 진입가 분모의 운영 계산 규칙이며 적정가치·기대수익률이 아니다. 체결가가 다르면 비율 재산정이 필요하며 주문·체결을 가정해 기록하지 않는다.
 
@@ -549,13 +559,13 @@ _10/30 종가 71,200원 (네이버) 기준 · 11/30까지 유효_
 
 숫자는 천 단위 쉼표, `elapsed_sec`은 분·초로 표시한다. 서브 응답 = `responses - main_responses`, 누적 입력 = 일반 입력(비캐시) + 캐시 쓰기 + 읽기다. 누적 처리량이지 청구 금액이 아니며 집계 뒤 마지막 턴은 빠질 수 있다. 명령 실패 시 해당 줄은 `집계 불가 (오류 내용)`이다.
 
-예정 시각은 스케줄러 확인 시에만 쓴다. 예정·실제 시작·첫 게시가 모두 있어야 지연을 계산하며 원인은 추정하지 않는다. 전송 시각은 성공 응답 후 상태에 갱신한다. 원문 저장·검증은 [생성 절차](#메시지-생성과-검증)를 따른다.
+예정 시각은 스케줄러 확인 시에만 쓴다. 예정·실제 시작·첫 게시가 모두 있어야 지연을 계산하며 원인은 추정하지 않는다. 원문 저장·검증은 [생성 절차](#메시지-생성과-검증)를 따른다. 복구 실행의 ID·시각·전송 결과는 별도 복구 기록으로 보존하고 원래 조사 사용량과 합산하지 않는다.
 
 ```
 ⚙️ 실행 정보
-• 조사: 한국 [시장 상태(조회 오류면 오류 유형·건수)] · 미국 [시장 상태]
-• 한국: 발견 n · 선정 n · 적격·순위 밀림 n · 제외 n · 보류(근거 부족) n · 미조사(시간·한도) n
-• 미국: 발견 n · 선정 n · 적격·순위 밀림 n · 제외 n · 보류(근거 부족) n · 미조사(시간·한도) n
+• 조사: 한국 [시장 상태·미해결 오류 유형] · 미국 [시장 상태·미해결 오류 유형]
+• 한국: 발견 n · 선정 n · 적격·순위 밀림 n · 제외 n · 보류 n · 미조사 n
+• 미국: 발견 n · 선정 n · 적격·순위 밀림 n · 제외 n · 보류 n · 미조사 n
 • 주요 사유: 시장별 최대 2개와 건수 또는 탐색 완료·발견 0개
 • 토큰: 일반 입력 12,345 · 캐시 쓰기 123,456 · 캐시 읽기 1,234,567 · 누적 입력 1,370,368 · 출력 34,567
 • 응답: 62회 (메인 62 · 서브에이전트 0개 0)
@@ -570,7 +580,7 @@ _10/30 종가 71,200원 (네이버) 기준 · 11/30까지 유효_
 
 게시 후 메시지는 수정하지 않는다. `validate_snapshot()`이 집계 합계·순위·가격 재계산·추세 산술·메시지 일치·문자 수를 검사하므로, 통과 후에는 검증기가 보지 않는 아래 항목을 **실제 근거와 대조**한다.
 
-- **적격 판정**: 각 단계 `통과`가 근거와 맞는지(비교 가능성·일회성·금융 건전성·지속성 등급·급등·추세·신호 점수), 지속성 `false`로 제외한 후보에 새 결산기 예외가 없었는지. PER 한 비교만 통과한 경우 다른 비교의 실패·미확인이 기록·표시됐는지, 상승여력 크기·부호만으로 제외하지 않았는지.
+- **적격 판정**: 각 단계 `통과`가 근거와 맞는지(비교 가능성·일회성·금융 건전성·지속성 등급·급등·추세·신호 점수), 잠정 지속성의 참·거짓 모두에 새 결산기 예외를 적용했는지. PER 한 비교만 통과한 경우 다른 비교의 실패·미확인이 기록·표시됐는지, 상승여력 크기·부호만으로 제외하지 않았는지.
 - **사실·내용**: 설명 1줄·포인트 3줄의 수치/인용 출처·날짜, 권유/예측 금지. `point_sources`가 빈 포인트에 외부 인용이 정말 없는지. 제목 공시는 완전 조회·후속 변경·접수일/링크/확인 방식, 소송·규제는 당사자/내용/단계/영향 대조.
 - **가격 입력**: EPS/BPS·배수의 기간/회계/통화/단위/출처 정합성, `basis_detail`·`target_reference`가 가격 입력과 같은지, 시가총액 `display`·링크/Markdown.
 - **조사·운영 기록**: 여섯 종류 탐색 근거·미조사 원인, 오류 유형·보류/미충족 구분. 실행 시각·지침 해시·상태 경로/보존·잠금·전송 직전 중복 확인.
@@ -583,7 +593,7 @@ _10/30 종가 71,200원 (네이버) 기준 · 11/30까지 유효_
 
 ## 최종 결과
 
-마지막 응답·실행별 조사 파일에 아래를 남기며 Slack에는 올리지 않는다. 게시 완료·조사 완료를 구분하고 세부 근거는 [스냅샷 저장 항목](#게시-전-스냅샷)을 따른다.
+마지막 응답은 아래 요약만 남기며 Slack에는 추가 게시하지 않는다. `완료`는 부모·양 시장·실행 정보의 게시가 모두 확인됐다는 뜻이며 조사 완료와 구분한다. 요약과 세부 근거는 실행별 조사 파일에도 보존한다.
 
 ```
 상태: 완료 / 일부 게시 / 게시 안 함 / 실패
@@ -593,17 +603,14 @@ _10/30 종가 71,200원 (네이버) 기준 · 11/30까지 유효_
 실행 식별: 실행 ID · 세션 ID/미확인 · 작업 경로 · Git 커밋 · 지침 SHA-256
 시간: 기준 시각 · 예정 시각/미확인 · 실제 시작 · 첫/최종 게시 · 집계 시각
 상태 보존: 절대 경로 · 저장/다시 읽기 성공 여부 · 실행 간 보존 확인/미확인 · 잠금 처리
-
-조사 범위와 집계: 시장별 탐색의 검색어·기간·결과·재시도·오류, 상태별·단계별·대표 사유별 집계와 합계 검증, 미조사 기업
-조회 오류: 유형(출처·예외 이름)별 건수와 원문 예시, 재조회(`retry`)·추가 재실행 결과, 대체 출처·매매가 미산출 기업
-후보·선정 근거: 모든 후보의 최종 상태·최초 차단 단계·사유·미수행 단계, 선정·적격 미선정 기업의 등급·신호 점수·순위와 저평가·진입가·실적·추세·신호 근거
-위험 점검: 후보별 네 묶음 검색어·기간·판정 또는 미수행 사유, 발견 기사의 URL·발행일·사건 요약
-오류: 실패한 메시지·시도 횟수·오류, 스냅샷 저장·복원 오류, 없으면 없음
+오류: 미해결 오류 요약 또는 없음
 ```
+
+후보별 판정·근거·미수행 항목, 검색·재시도·오류 원문, 집계, 가격 입력과 전송 이력은 [스냅샷 저장 항목](#게시-전-스냅샷)에 따라 파일에 보존한다. 마지막 응답에 전체 조사 기록을 반복하지 않는다.
 
 ## 코드 부록
 
-본문의 입력·출력·오류 처리 계약을 먼저 확인한 뒤 필요한 코드만 실행한다. 예시 날짜·종목·세션 경로는 실제 확인값으로 바꾸며, 계산·조회 코드를 임의로 재작성하지 않는다. Python 3.10 이상에서 설치와 실행에 같은 인터프리터를 사용한다. 조회 코드는 적힌 대로 `python3 - ... <<'EOF'`로 실행한다. 파일로 저장하면 `signal.py`처럼 표준 모듈과 같은 이름을 피하고(예: `brief_signals.py`), 실행 폴더에도 그런 이름의 파일을 두지 않는다. 같은 이름이 있으면 `yfinance`·`asyncio`가 그 파일을 대신 불러와 조회가 멈춘다.
+본문의 입력·출력·오류 처리 계약을 먼저 확인한 뒤 필요한 코드만 실행한다. 예시 날짜·종목·세션 경로는 실제 확인값으로 바꾸며, 계산·조회 코드를 브리핑 실행 중 임의로 재작성하지 않는다. 지침 검토·수정 요청에서는 본문과 코드를 함께 수정할 수 있다. Python 3.10 이상에서 설치와 실행에 같은 인터프리터를 사용한다. 조회 코드는 적힌 대로 `python3 - ... <<'EOF'`로 실행한다. 파일로 저장하면 `signal.py`처럼 표준 모듈과 같은 이름을 피하고(예: `brief_signals.py`), 실행 폴더에도 그런 이름의 파일을 두지 않는다. 같은 이름이 있으면 `yfinance`·`asyncio`가 그 파일을 대신 불러와 조회가 멈춘다.
 
 ### 환경 준비
 
@@ -644,7 +651,8 @@ def krx_tick(p):  # KRX 호가 단위 (유가증권·코스닥 공통)
 def validate_entry_evidence(valuation_bases, market, brief_date):
     if not isinstance(valuation_bases, list) or not valuation_bases:
         raise ValueError("PER/PBR 기반 진입가 근거 필요")
-    required = {"per_share_url", "per_share_date", "benchmark_url", "benchmark_date",
+    required = {"per_share_url", "per_share_date", "per_share_date_kind",
+                "benchmark_url", "benchmark_date", "benchmark_date_kind",
                 "analyst", "period", "actual_or_forecast", "accounting_basis",
                 "currency", "share_unit", "split_basis", "comparison_subject",
                 "comparison_note", "valuation_date"}
@@ -660,10 +668,15 @@ def validate_entry_evidence(valuation_bases, market, brief_date):
             url = urlsplit(evidence[key])
             if url.scheme not in {"https", "http"} or not url.hostname or url.hostname == "news.google.com":
                 raise ValueError("검색 결과에서 확인한 원문 URL 필요")
-        for key in ("per_share_date", "benchmark_date"):
-            published = date.fromisoformat(evidence[key])
-            if not brief_date - timedelta(days=30) <= published <= brief_date:
-                raise ValueError("진입가 근거의 기사 발행일/제공값 조회일 범위 확인 필요")
+        for prefix in ("per_share", "benchmark"):
+            day = date.fromisoformat(evidence[f"{prefix}_date"])
+            kind = evidence[f"{prefix}_date_kind"]
+            if kind not in {"published", "retrieved"}:
+                raise ValueError("근거 날짜는 published 또는 retrieved로 구분해야 함")
+            # 날짜 범위의 1차 검사다. 경계일의 정확한 공개 시각은 asof·근거 대조로 확인한다.
+            # 제공값 조회일에는 발행일 제한을 적용하지 않는다.
+            if kind == "published" and not brief_date - timedelta(days=30) <= day <= brief_date:
+                raise ValueError("기사 발행일이 30일 범위 밖")
         if date.fromisoformat(evidence["valuation_date"]) >= brief_date:
             raise ValueError("평가 기준일은 직전 거래일까지여야 함")
         if evidence["currency"] != {"KR": "KRW", "US": "USD"}[market]:
@@ -740,7 +753,7 @@ def levels(price, target, market, brief_date, valuation_bases):
 | 시가총액 | 종가와 독립 조회: 한국 네이버 시세 API, 미국 Yahoo `marketCap`. 이것만 오류면 `시가총액 미확인`으로 조사 계속 |
 | 추세 | 종가와 독립 조회: Yahoo `Adj Close`(한국 `.KS` → `.KQ`) 과거 400일의 마지막 80세션. 출처·수정/비수정 계열 혼합 금지. `trend.error`·`trend.warnings` 보존 |
 
-종가·추세·시가총액 중 오류가 있으면 스크립트가 전체 조회 후 60초 뒤 1회 재조회한다. 두 번째 결과와 `retry.first_errors`를 쓴다. 재조회 후에도 **한 시장 후보의 절반 이상이면서 10개 이상** 오류면 대량 조회 오류다. 다른 기사 작업 후 실패 종목만 한 번 더 실행하고, 여전히 실패한 종목을 조회 오류로 보류한다. 시도별 시각·오류 원문을 보존한다.
+종가·추세·시가총액 중 오류가 있으면 스크립트가 전체 조회 후 60초 뒤 **실패 항목만** 1회 재조회하고, 성공한 항목의 값은 유지한다. 최종 결과와 `retry.first_errors`를 쓴다. 재조회 후에도 **한 시장 후보의 절반 이상이면서 10개 이상** 오류면 대량 조회 오류다. 다른 기사 작업 후 실패 종목만 한 번 더 실행하고, 원래 실패 항목의 결과만 병합한다. 최종 처리는 공통 오류 복구 표를 따르므로 종가 복구 대기와 시가총액만의 오류를 일괄 보류하지 않는다. 시도별 시각·오류 원문을 보존한다.
 
 ```bash
 # 첫 인수는 실행 시작 시 고정한 브리핑 날짜로, 나머지는 실제 후보로 바꾼다.
@@ -859,7 +872,8 @@ def trend_from_rows(rows, session_dates):
                                 for d, p in zip(dates, adjusted)]}
 
 def trend(market, code):
-    base = {"source": "Yahoo Finance", "expected_date": None}
+    base = {"source": "Yahoo Finance", "expected_date": None,
+            "retrieved_at": datetime.now(KST).isoformat(timespec="seconds")}
     errors = []
     try:
         expected = expected_session(market)
@@ -926,7 +940,8 @@ def market_cap(market, code):
                 "error": f"{type(e).__name__}: {e}"[:200]}
 
 def quote(market, code):
-    base = {"market": market, "code": code, "expected_date": None}
+    base = {"market": market, "code": code, "expected_date": None,
+            "retrieved_at": datetime.now(KST).isoformat(timespec="seconds")}
     try:
         expected = expected_session(market)
         base["expected_date"] = expected.isoformat()
@@ -982,6 +997,12 @@ def errors_of(result):
     return {k: v for k, v in {"quote": result.get("error"), "market_cap": result["market_cap"].get("error"),
                               "trend": result["trend"].get("error")}.items() if v}
 
+def retry_failed(market, code, first):
+    again = quote(market, code) if first.get("error") else dict(first)
+    again["market_cap"] = market_cap(market, code) if first["market_cap"].get("error") else first["market_cap"]
+    again["trend"] = trend(market, code) if first["trend"].get("error") else first["trend"]
+    return again
+
 targets = [arg.split(":", 1) for arg in sys.argv[2:]]
 # 빠른 확인에서 후보 전체를 넘기므로 8개씩 병렬 조회하고 입력 순서대로 출력한다.
 from concurrent.futures import ThreadPoolExecutor
@@ -996,7 +1017,7 @@ with ThreadPoolExecutor(max_workers=8) as pool:
     failed = [i for i, r in enumerate(results) if errors_of(r)]
     if failed:
         time.sleep(RETRY_WAIT)
-        retried = list(pool.map(lambda i: lookup(*targets[i]), failed))
+        retried = list(pool.map(lambda i: retry_failed(*targets[i], results[i]), failed))
         for i, again in zip(failed, retried):
             results[i] = {**again, "retry": {"waited_sec": RETRY_WAIT, "first_errors": errors_of(results[i])}}
 for result in results:
@@ -1014,7 +1035,7 @@ DART는 `DART_API_KEY`가 필요하다. 환경변수에 없고 작업 폴더에 
 
 | 조회 | 범위·결과 |
 |---|---|
-| `--discover-kr` | 유가증권(`Y`)·코스닥(`K`) 주요사항·거래소 공시의 자사주·배당·공급계약과 네이버 전체 리포트 목록의 신호 기간 종목. 리포트 종목은 네이버 기본정보로 시장을 확인하며 코넥스·확인 실패는 `research.skipped`. 8개 병렬 목표가 비교로 각 리포트 `target_change`·후보 `target_raise_score` 생성. 페이지 한도·부분 조회는 `errors` |
+| `--discover-kr` | 유가증권(`Y`)·코스닥(`K`) 주요사항·거래소 공시의 자사주·배당·공급계약과 네이버 전체 리포트 목록의 신호 기간 종목. 리포트 종목은 네이버 기본정보로 시장을 확인하며 확인된 코넥스는 `research.skipped`, 확인 실패는 `listing_error`가 있는 후보와 `errors`로 보존. 8개 병렬 목표가 비교로 각 리포트 `target_change`·후보 `target_raise_score` 생성. 페이지 한도·부분 조회는 `errors` |
 | `--discover-us` | Wikipedia S&P 500·MidCap 400 약 900종목의 투자의견·목표가 상향(8개 병렬), Yahoo 실적 캘린더 EPS 상회(100건 페이지). 캘린더 실패 시 60초 뒤 1회 재조회. `earnings_calendar_events != null`이면 성공이며 `1차` 오류는 재시도 기록. 출력 `candidates`·`failed`·`errors` |
 | 한국 후보 | `disclosures`(긍정 공시·`title_only_eligible`·사유), `disclosure_changes`(30일 자사주·배당·공급계약 변경), `earnings_releases`(잠정실적), `risk_disclosures`(30일 희석·소송·규제), `research_reports`·`target_change`, `research_complete`·`research_errors`, `target_raises`·`target_raise_score`, `target_cuts_30d`, `targets_30d`(30일 목표가 있는 모든 리포트). 각 항목의 날짜·제목·링크 보존 |
 | 미국 후보 | `target_raises`·`target_raise_score`, `target_cuts_30d`, `targets_30d`(30일 목표가 있는 모든 투자의견), `latest_earnings`(EPS 추정·실제·`beat`·`in_signal_window`) |
@@ -1085,6 +1106,10 @@ def new_decision_title(title):
 def inside(day, start):
     # 날짜만 있는 자료는 경계 날짜(시작일·브리핑 날짜)를 판단할 수 없으므로 인정하지 않는다.
     return start.date() < day < cutoff.date()
+
+def safe_error(error):
+    message = f"{type(error).__name__}: {error}"
+    return message.replace(DART_KEY, "[DART_API_KEY 비공개]") if DART_KEY else message
 
 def dart(path, **params):
     if not DART_KEY:
@@ -1232,7 +1257,7 @@ def naver_target_changes(code, max_pages=10):
             else:
                 change, reason = "same", "목표가·투자의견 유지"
         except Exception as e:
-            change, reason = "unknown", f"조회 오류: {type(e).__name__}: {e}"[:200]
+            change, reason = "unknown", f"조회 오류: {safe_error(e)}"[:200]
         reports.append({**row, "target_change": change, "target_change_reason": reason})
     raises = [r for r in reports if r["in_signal_window"] and r["target_change"] == "up"]
     firms = {r["broker"] for r in raises}
@@ -1261,7 +1286,7 @@ def kr(code):
             out["errors"].append("DART 공시 목록 일부만 조회")
     except Exception as e:
         out["disclosures"] = out["disclosure_changes"] = out["earnings_releases"] = out["risk_disclosures"] = None
-        out["errors"].append(f"DART: {type(e).__name__}: {e}"[:200])
+        out["errors"].append(f"DART: {safe_error(e)}"[:200])
     try:
         out.update(naver_target_changes(code))
         out["errors"].extend(out["research_errors"])
@@ -1269,7 +1294,7 @@ def kr(code):
         out["research_complete"] = False
         out["research_reports"] = out["target_raises"] = out["target_raise_score"] = None
         out["target_cuts_30d"] = out["targets_30d"] = None
-        out["errors"].append(f"네이버 리포트: {type(e).__name__}: {e}"[:200])
+        out["errors"].append(f"네이버 리포트: {safe_error(e)}"[:200])
     return out
 
 def us(code, earnings=True):
@@ -1306,7 +1331,7 @@ def us(code, earnings=True):
         out["target_raise_score"] = 2 if len(firms) >= 2 else len(firms)
     except Exception as e:
         out["target_raises"] = out["target_cuts_30d"] = out["targets_30d"] = None
-        out["errors"].append(f"투자의견: {type(e).__name__}: {e}"[:200])
+        out["errors"].append(f"투자의견: {safe_error(e)}"[:200])
     if not earnings:  # 시장 탐색은 실적 캘린더로 따로 확인한다.
         return out
     try:
@@ -1327,7 +1352,7 @@ def us(code, earnings=True):
         out["latest_earnings"] = latest
     except Exception as e:
         out["latest_earnings"] = None
-        out["errors"].append(f"실적 발표: {type(e).__name__}: {e}"[:200])
+        out["errors"].append(f"실적 발표: {safe_error(e)}"[:200])
     return out
 
 def discover_kr():
@@ -1345,7 +1370,7 @@ def discover_kr():
                         found.setdefault(i["stock_code"], {"code": i["stock_code"], "name": i["corp_name"],
                                                            "market": corp_cls, "disclosures": []})["disclosures"].append(row)
             except Exception as e:
-                errors.append(f"{corp_cls}/{kind}: {type(e).__name__}: {e}"[:200])
+                errors.append(f"{corp_cls}/{kind}: {safe_error(e)}"[:200])
     try:
         reports, truncated = research_list()
         if truncated:
@@ -1366,14 +1391,19 @@ def discover_kr():
             if market in ("Y", "K"):
                 found[code] = {"code": code, "name": rows[0]["name"], "market": market,
                                "disclosures": [], "research_reports": rows}
-            else:
+            elif market == "KONEX":
                 skipped.append({"code": code, "name": rows[0]["name"], "market": market})
+            else:
+                reason = market or "시장 구분 없음"
+                found[code] = {"code": code, "name": rows[0]["name"], "market": None,
+                               "listing_error": reason, "disclosures": [], "research_reports": rows}
+                errors.append(f"상장 시장 {code}: {reason}")
         # 리포트 후보의 목표가 상향 여부를 미리 판정해 상세 검증 한도를 상향 후보에 쓴다.
         def check(code):
             try:
                 return code, naver_target_changes(code), None
             except Exception as e:
-                return code, None, f"{type(e).__name__}: {e}"[:200]
+                return code, None, f"{safe_error(e)}"[:200]
         listed = [c for c in by_code if c in found]
         with ThreadPoolExecutor(max_workers=8) as pool:
             for code, result, error in pool.map(check, listed):
@@ -1391,7 +1421,7 @@ def discover_kr():
                     "target_check_errors": sum(1 for c in listed if found[c].get("target_check_error"))}
     except Exception as e:
         research = None
-        errors.append(f"네이버 리포트: {type(e).__name__}: {e}"[:200])
+        errors.append(f"네이버 리포트: {safe_error(e)}"[:200])
     return {"mode": "discover", "window": [signal_start.isoformat(), cutoff.isoformat()],
             "candidates": sorted(found.values(), key=lambda c: c["code"]), "research": research, "errors": errors}
 
@@ -1423,7 +1453,7 @@ def listing_market(code):
             name = (json.load(response).get("stockExchangeType") or {}).get("name")
         return {"KOSPI": "Y", "KOSDAQ": "K"}.get(name, name)
     except Exception as e:
-        return f"확인 실패: {type(e).__name__}: {e}"[:200]
+        return f"확인 실패: {safe_error(e)}"[:200]
 
 US_INDEXES = [("S&P 500", "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"),
               ("S&P MidCap 400", "https://en.wikipedia.org/wiki/List_of_S%26P_400_companies")]
@@ -1450,7 +1480,7 @@ def us_universe():
             if found < 300:
                 raise ValueError(f"구성 종목 {found}개만 확인")
         except Exception as e:
-            errors.append(f"{name} 구성 종목: {type(e).__name__}: {e}"[:200])
+            errors.append(f"{name} 구성 종목: {safe_error(e)}"[:200])
     return tickers, errors
 
 def earnings_beats():
@@ -1490,7 +1520,7 @@ def discover_us():
             beats, scanned_events = earnings_beats()
             break
         except Exception as e:
-            calendar_errors.append(f"실적 캘린더 {attempt + 1}차: {type(e).__name__}: {e}"[:200])
+            calendar_errors.append(f"실적 캘린더 {attempt + 1}차: {safe_error(e)}"[:200])
             if attempt == 0:
                 sleep(60)
     errors += calendar_errors
@@ -1498,7 +1528,7 @@ def discover_us():
         try:
             return code, us(code, earnings=False)
         except Exception as e:
-            return code, {"errors": [f"{type(e).__name__}: {e}"[:200]]}
+            return code, {"errors": [f"{safe_error(e)}"[:200]]}
     found, failed = [], {}
     with ThreadPoolExecutor(max_workers=8) as pool:
         for code, r in pool.map(scan, sorted(universe)):
@@ -1526,7 +1556,7 @@ else:
         try:
             result = kr(code) if market == "KR" else us(code)
         except Exception as e:
-            result = {"error": f"{type(e).__name__}: {e}"[:200]}
+            result = {"error": f"{safe_error(e)}"[:200]}
         print(json.dumps({**base, **result}, ensure_ascii=False))
 EOF
 ```
@@ -1543,7 +1573,7 @@ EOF
 | `peers`·`history` | 동종 PER/PBR·최근 3개 실제 회계연도 PER. 한국 네이버 연간 PER/EPS/ROE, 미국 Yahoo 연간 희석 EPS·결산일 이전 마지막 종가(`close_date`)의 비율·최상위 `roe`. 적자 연도 제외. 과거 연간 EPS가 최근 4분기 EPS의 절반 미만이거나 미확인이면 과거 비교 `passed: null` |
 | `valuation.comparisons` | 자사 배수·표본 수·중앙값·할인율·`passed`, 통과 비교의 `valuation_basis` |
 | `quarters`·`sustainability` | Yahoo 최근 5분기 영업이익·영업현금흐름·FCF, 최신 분기 판정·`yoy`·`ocf_negative_quarters_4q`·등급. 한쪽 항목만 있는 최신 분기도 보존하며 이전 분기로 후퇴 금지 |
-| `dart_financials` | 한국 최근 200일 제출한 최신 정기보고서의 `period_end`·접수일·`url`·연결/별도(`fs_div`), 분기 영업이익·전년 동기 값, 누적 영업이익·누적 영업현금흐름·전년 같은 기간 값, `newer_than_yahoo`, `filed_for_latest_quarter`(브리핑 직전 분기 말 보고서 제출 여부), `eligible`·`yoy`. DART 키는 부록 C 규칙 적용. 누적 현금흐름을 분기로 환산하지 않음 |
+| `dart_financials` | 한국 최근 200일 제출한 최신 정기보고서의 `period_end`·접수일·`url`·연결/별도(`fs_div`), 분기 영업이익·전년 동기 값, 누적 영업이익·누적 영업현금흐름·전년 같은 기간 값, `newer_than_yahoo`, `filed_for_latest_quarter`(직전 달력 분기 말 이상의 보고서인지 나타내는 참고값), `eligible`·`yoy`. DART 키는 부록 C 규칙 적용. 누적 현금흐름을 분기로 환산하지 않음 |
 
 제공값과 조회 시각을 함께 저장한다. 최상위 `error`는 조회 실패, `errors`는 동종·연간·분기 일부 실패다. `sustainability.error`·`dart_financials.error`도 보존한다. 일부 실패는 해당 비교만 미확인으로 처리한다.
 
@@ -1615,10 +1645,12 @@ def sustainability(quarters):
         return {"eligible": None, "error": "분기 실적 없음"}
     latest = quarters[0]
     if date.fromisoformat(latest["period_end"]) < today - timedelta(days=200):
-        return {"eligible": None, "error": f"최신 분기 자료가 오래됨: {latest['period_end']}"}
+        return {"period_end": latest["period_end"], "eligible": None,
+                "error": f"최신 분기 자료가 오래됨: {latest['period_end']}"}
     oi, ocf = num(latest["operating_income"]), num(latest["operating_cash_flow"])
     if oi is None or ocf is None:
-        return {"eligible": None, "error": "영업이익 또는 영업현금흐름 누락"}
+        return {"period_end": latest["period_end"], "eligible": None,
+                "error": "영업이익 또는 영업현금흐름 누락"}
     result = {"period_end": latest["period_end"], "operating_income_positive": oi > 0,
               "operating_cash_flow_positive": ocf > 0, "eligible": oi > 0 and ocf > 0, "yoy": None}
     prior = next((q for q in quarters[1:] if abs((date.fromisoformat(latest["period_end"])
@@ -1658,7 +1690,7 @@ def kr(code):
                           "pbr": str(positive(pi.get("pbr", {}).get("value")) or "") or None,
                           "per_period": (pi.get("per", {}).get("valueDesc") or "").rstrip(".") or None})
         except Exception as e:
-            out["errors"].append(f"동종 {pc}: {type(e).__name__}: {e}"[:200])
+            out["errors"].append(f"동종 {pc}: {safe_error(e)}"[:200])
     out["peers"] = peers
     try:
         fi = naver_json(f"{code}/finance/annual")["financeInfo"]
@@ -1669,7 +1701,7 @@ def kr(code):
                            "roe": rows.get("ROE", {}).get(k, {}).get("value")} for k in actual]
     except Exception as e:
         out["history"] = []
-        out["errors"].append(f"연간 재무: {type(e).__name__}: {e}"[:200])
+        out["errors"].append(f"연간 재무: {safe_error(e)}"[:200])
     out["urls"] = {"display": f"https://finance.naver.com/item/main.naver?code={code}",
                    "per_share": f"https://m.stock.naver.com/api/stock/{code}/integration",
                    "peers": f"https://m.stock.naver.com/api/stock/{code}/integration",
@@ -1710,9 +1742,9 @@ def us(code):
                               "per": str(positive(pi.get("trailingPE")) or "") or None,
                               "pbr": str(positive(pi.get("priceToBook")) or "") or None, "per_period": "TTM"})
             except Exception as e:
-                out["errors"].append(f"동종 {pc}: {type(e).__name__}: {e}"[:200])
+                out["errors"].append(f"동종 {pc}: {safe_error(e)}"[:200])
     except Exception as e:
-        out["errors"].append(f"동종 목록: {type(e).__name__}: {e}"[:200])
+        out["errors"].append(f"동종 목록: {safe_error(e)}"[:200])
     out["peers"] = peers
     out["history"] = []
     try:
@@ -1737,7 +1769,7 @@ def us(code):
                                    "close_date": before.index[-1].date().isoformat() if len(before) else None,
                                    "roe": None})
     except Exception as e:
-        out["errors"].append(f"연간 PER: {type(e).__name__}: {e}"[:200])
+        out["errors"].append(f"연간 PER: {safe_error(e)}"[:200])
     out["urls"] = {"display": f"https://finance.yahoo.com/quote/{symbol}/key-statistics",
                    "per_share": f"https://finance.yahoo.com/quote/{symbol}/key-statistics",
                    "peers": f"https://finance.yahoo.com/sectors/{info.get('sectorKey')}/{info.get('industryKey')}",
@@ -1757,9 +1789,12 @@ def compare(market, code, close, close_date, f):
     retrieved = datetime.now(KST).date().isoformat()
     names = ", ".join(p["name"] or p["code"] for p in f["peers"])[:200]
     def add(kind, metric, own, values, minimum, per_share, benchmark_url, subject, unverified=None):
+        entry = {"kind": kind, "metric": metric, "own": str(own) if own is not None else None,
+                 "sample": len(values)}
         if own is None:
+            entry.update(passed=None, reason="필수 주당값 미확인 또는 0 이하 — 별도 판정 필요")
+            result["comparisons"].append(entry)
             return
-        entry = {"kind": kind, "metric": metric, "own": str(own), "sample": len(values)}
         if len(values) < minimum:
             entry.update(passed=None, reason=f"유효 비교값 {len(values)}개 (필요 {minimum}개)")
         else:
@@ -1775,7 +1810,9 @@ def compare(market, code, close, close_date, f):
             # levels()에 그대로 넘길 수 있는 기준가치 입력. 채택 여부는 지침의 지표 선택 규칙을 따른다.
             entry["valuation_basis"] = {"method": metric, "per_share": str(per_share), "benchmark": str(bench),
                 "evidence": {"per_share_url": f["urls"]["per_share"], "per_share_date": retrieved,
+                             "per_share_date_kind": "retrieved",
                              "benchmark_url": benchmark_url, "benchmark_date": retrieved,
+                             "benchmark_date_kind": "retrieved",
                              "analyst": f"{f['source']} 제공값",
                              "period": f"{f['eps' if metric == 'PER' else 'bps']['period']} "
                                        f"({f['eps' if metric == 'PER' else 'bps']['basis']})",
@@ -1814,6 +1851,10 @@ DART_LOCK = threading.Lock()
 DART_REPORTS = {"분기보고서": ("11014", "11013"), "반기보고서": ("11012",), "사업보고서": ("11011",)}
 OPERATING_INCOME = ("dart_OperatingIncomeLoss", "ifrs-full_ProfitLossFromOperatingActivities")
 OPERATING_CASH_FLOW = ("ifrs-full_CashFlowsFromUsedInOperatingActivities",)
+
+def safe_error(error):
+    message = f"{type(error).__name__}: {error}"
+    return message.replace(DART_KEY, "[DART_API_KEY 비공개]") if DART_KEY else message
 
 def dart(path, **params):
     if not DART_KEY:
@@ -1911,7 +1952,7 @@ def run(market, code, close, close_date):
     try:
         f = kr(code) if market == "KR" else us(code)
     except Exception as e:
-        return {**base, "error": f"{type(e).__name__}: {e}"[:200]}
+        return {**base, "error": f"{safe_error(e)}"[:200]}
     symbols = [f"{code}.KS", f"{code}.KQ"] if market == "KR" else [code.replace(".", "-")]
     quarters = []
     for s in symbols:
@@ -1920,12 +1961,12 @@ def run(market, code, close, close_date):
             if quarters:
                 break
         except Exception as e:
-            f["errors"].append(f"분기 실적 {s}: {type(e).__name__}: {e}"[:200])
+            f["errors"].append(f"분기 실적 {s}: {safe_error(e)}"[:200])
     if market == "KR":
         try:
             f["dart_financials"] = dart_financials(code, quarters[0]["period_end"] if quarters else None)
         except Exception as e:
-            f["dart_financials"] = {"error": f"DART 재무: {type(e).__name__}: {e}"[:200]}
+            f["dart_financials"] = {"error": f"DART 재무: {safe_error(e)}"[:200]}
     return {**base, **f, "quarters": quarters, "quarters_source": "Yahoo Finance",
             "sustainability": sustainability(quarters), "valuation": compare(market, code, close, close_date, f)}
 
@@ -1940,7 +1981,7 @@ def run_arg(arg):
         # 한 후보의 비교·실적 처리 오류 때문에 나머지 일괄 결과가 사라지지 않게 한다.
         return {"market": market, "code": code,
                 "retrieved_at": datetime.now(KST).isoformat(timespec="seconds"),
-                "error": f"{type(e).__name__}: {e}"[:200]}
+                "error": f"{safe_error(e)}"[:200]}
 
 # 빠른 확인에서 후보 전체를 넘기므로 8개씩 병렬 조회하고 입력 순서대로 출력한다.
 from concurrent.futures import ThreadPoolExecutor
@@ -2035,9 +2076,9 @@ EOF
 | `quote`·`trend` | `quote`는 최종 채택한 `close`, `date`, `expected_date`, `source`. 기사 복구 시에도 같은 형식이며 원래 오류는 원시 기록에 보존. `trend`는 시세 스크립트 출력 전체를 보존 |
 | `valuation` | `company_kind`(`general`/`financial`/`reit`), 제공 `eps` 값, 최종 `comparisons`(각각 `metric`, `kind`, `passed`, 통과 시 `valuation_basis`), 금융은 `pbr_health_verified`. 동종·자사 과거 PER 두 비교 모두 필수이며 실패·미확인도 생략하지 않음. `kind`는 `동종 중앙값` 또는 `자사 최근 3개 회계연도 중앙값`이며 후자는 PER만 허용. 누락 비교는 `passed: null`과 사유를 기록. 기사 보완도 이 종류로 병합하고 변경 근거와 원래 출력은 따로 보존 |
 | `price_inputs`·`prices` | `price_inputs`는 `price`, `target`(미확인은 `null`), `market`, `brief_date`, `valuation_bases`. 통과한 주 지표 비교의 입력을 `comparisons` 순서대로 모두 포함. `prices`는 부록 A `levels()`의 전체 반환값 |
-| `asof` | `시세`, `추세`, `EPS/BPS`, `비교배수`, `실적`, `신호`, `위험`, 목표가 확인 시 `목표가`를 키로 둔다. 각각 `compatible`, `retrieved_at`, `available_at`(시간대 있는 공개 시각) 또는 `available_date`, `evidence`를 기록. 여러 자료를 쓴 항목의 `evidence`에는 자료별 공개·갱신 시각과 기준 시각 적합성의 근거를 모두 담는다 |
+| `asof` | `시세`, `추세`, `EPS/BPS`, `비교배수`, `실적`, `신호`, `위험`, 목표가 확인 시 `목표가`를 키로 둔다. 각각 `compatible`, `retrieved_at`, `available_at`(시간대 있는 공개 시각) 또는 `available_date`, `evidence`(비어 있지 않은 문자열)를 기록. 여러 자료를 쓴 항목의 `evidence`에는 자료별 공개·갱신 시각과 기준 시각 적합성의 근거를 모두 담는다. 경계일 자료는 항목 대표 시각만이 아니라 자료별 시각도 직접 대조한다 |
 | 선정 후보의 `display` | `description`(회사 설명·`market_cap.display` 그대로), `selection_reason`, `points`(3개 한 줄 문장 목록), `point_sources`(포인트별 인용 URL 목록 3개, 각 URL은 해당 포인트에 `[이름](URL)`으로 포함, 포인트 2는 비울 수 없음), `basis_detail`(채택 EPS/BPS·비교배수·대상 기간·출처·확인일), `signal_link`, 목표가 있으면 `target_reference`(증권사·리포트 날짜·확인된 변경 유형·출처) |
-| `market_diagnostics` | `KR`·`US` 각각 `discovery`와 `unresolved_errors`. `discovery`는 신호 표의 여섯 종류를 키로 하며 각각 `status`(`complete`/`error`/`missing`), `evidence`(검색어·기간·시각·결과·오류 목록). 스크립트로 충족했으면 그 조회 근거를 기록. `unresolved_errors`는 판정에 필요한 미해결 오류를 `출처·예외 이름`별로 묶은 목록이며 각각 `type`(예: `Yahoo Finance: YFRateLimitError`), `count`(영향 조회 건수, 양의 정수), `example`(원문 예시 1개). 해결된 재시도 오류는 넣지 않음. 상위 2개 유형은 Slack `검증:`·실행 정보의 시장 상태 뒤에 표시됨 |
+| `market_diagnostics` | `KR`·`US` 각각 `discovery`와 `unresolved_errors`. `discovery`는 신호 표의 여섯 종류를 키로 하며 각각 `status`(`complete`/`error`/`missing`), `evidence`(검색어·기간·시각·결과·오류 목록). 스크립트로 충족했으면 그 조회 근거를 기록. `unresolved_errors`는 판정에 필요한 미해결 오류를 `출처·예외 이름`별로 묶은 목록이며 각각 `type`(예: `Yahoo Finance: YFRateLimitError`), `count`(영향 조회 건수, 양의 정수), `example`(원문 예시 1개). 해결된 재시도 오류·선택 항목만의 오류는 넣지 않음. 상위 2개 유형은 Slack `조사 상태:`·실행 정보의 시장 상태 뒤에 표시됨 |
 | `aggregation`·`messages` | 검증기가 생성한 집계 객체와 메시지를 그대로 저장. `messages`는 `parent`(문자열), `KR`·`US`(답글 문자열 목록), `execution_diagnostics`(실행 정보의 확정 진단 부분) |
 
 ```python
@@ -2054,7 +2095,7 @@ RISKS = ('실적·전망', '희석·규제·소송', '이익 추정치', '현금
 LABELS = {'KR': ('🇰🇷', '한국'), 'US': ('🇺🇸', '미국')}
 # 스냅샷 상태값은 그대로 두고 Slack 표시만 독자용 용어로 바꾼다.
 STATE_DISPLAY = {'선정': '선정', '적격 미선정': '적격·순위 밀림', '제외': '제외',
-                 '보류': '보류(근거 부족)', '미조사': '미조사(시간·한도)'}
+                 '보류': '보류', '미조사': '미조사'}
 POINT_LABELS = ('신호', '저평가·실적', '리스크')
 
 
@@ -2100,7 +2141,7 @@ def check_candidate(c, brief_date):
     require(c['confidence'] == 'normal', '적격 후보의 신뢰도는 normal')
     require(c['reason'] is None, '적격 후보의 차단 사유는 null')
     require(c['valuation_grade'] in (1, 2) and c['sustainability_grade'] in (1, 2), '필수 등급 오류')
-    require(type(c['signal_score']) is int and c['signal_score'] > 0, '인정 신호 점수 필요')
+    require(type(c['signal_score']) is int and 1 <= c['signal_score'] <= 9, '인정 신호 점수 범위는 1~9')
     for key in STAGES:
         require(c['stages'][key]['status'] == '통과', f'{key}: 적격 조건 미충족')
     require(c['duplicate_clear'] is True and c['surge_clear'] is True, '중복·급등 확인 필요')
@@ -2186,15 +2227,16 @@ def aggregate_snapshot(s):
             text_value(e['type']); text_value(e['example'])
             require(type(e['count']) is int and e['count'] > 0, '미해결 오류 건수 오류')
             errors[e['type']] += e['count']
+        discovery_complete = all(x['status'] == 'complete' for x in diag['discovery'].values())
         state_reasons = []
-        if any(x['status'] != 'complete' for x in diag['discovery'].values()) or any(
+        if not discovery_complete or any(
                 c['status'] == '미조사' and c['reason'] != '조사 한도(그룹 ③)' for c in cs):
             state_reasons.append('조사 범위 미완료')
         if diag['unresolved_errors']:
             state_reasons.append('조회 오류')
         if counts['보류']:
             state_reasons.append('근거 미확인')
-        result[market] = {'discovered': len(cs), 'counts': counts,
+        result[market] = {'discovered': len(cs), 'discovery_complete': discovery_complete, 'counts': counts,
             'reasons': dict(sorted(reasons.items(), key=lambda kv: (-kv[1], kv[0]))),
             'errors': dict(sorted(errors.items(), key=lambda kv: (-kv[1], kv[0]))),
             'stages': {k: {'entered': sum(c['stages'][k]['status'] != '미수행' for c in cs),
@@ -2204,7 +2246,7 @@ def aggregate_snapshot(s):
 
 
 def state_label(a):
-    # 조회 오류 상태에는 미해결 오류 유형(출처·예외 이름) 최대 2개와 건수를 붙인다.
+    # 우선 상태가 조사 범위 미완료여도 미해결 필수 오류 유형 최대 2개와 건수를 붙인다.
     top = list(a['errors'].items())[:2]
     return a['state'] + (f'({" · ".join(f"{k} {v}건" for k, v in top)})' if top else '')
 
@@ -2214,7 +2256,7 @@ def diagnostic_lines(a):
     counts = f'발견 {a["discovered"]} · {counts}'
     top = list(a['reasons'].items())[:2]
     reason = ' · '.join(f'{k}({v})' for k, v in top) if top else (
-        '탐색 완료·발견 0개' if not a['discovered'] and a['state'] == '조사 완료' else
+        '탐색 완료·발견 0개' if not a['discovered'] and a['discovery_complete'] else
         '탐색 미완료·발견 0개' if not a['discovered'] else '제외·보류·미조사 없음')
     return f'조사 상태: {state_label(a)} · {reason}', counts, f'주요 사유: {reason}'
 
@@ -2300,7 +2342,7 @@ def validate_execution_message(s, message):
 
 
 def validate_snapshot(s):
-    require(s['schema_version'] == 'brief-state-v2' and s['validation_version'] == 'brief-check-v3', '검증 버전 불일치')
+    require(s['schema_version'] == 'brief-state-v2' and s['validation_version'] == 'brief-check-v4', '검증 버전 불일치')
     require(s['channel_id'] == 'C0CDFHG8PL7', '게시 채널 불일치')
     require(isinstance(s['candidates'], list), '전체 후보 목록 필요')
     aggregation = aggregate_snapshot(s)
@@ -2311,5 +2353,5 @@ def validate_snapshot(s):
         require(0 < len(text) <= 3000, '메시지 길이 초과: 근거를 유지하며 문장을 줄일 것')
     if s.get('execution_message') is not None:
         validate_execution_message(s, s['execution_message'])
-    return {'ok': True, 'validation_version': 'brief-check-v3'}
+    return {'ok': True, 'validation_version': 'brief-check-v4'}
 ```
