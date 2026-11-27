@@ -1,0 +1,925 @@
+{
+ "briefing_date": "2026-11-28",
+ "weekday": "토",
+ "reference_time": "2026-11-28T07:00:00+09:00",
+ "window": {
+  "start": "2026-11-27T07:00:00+09:00",
+  "end_exclusive": "2026-11-28T07:00:00+09:00"
+ },
+ "markets": {
+  "KR": {
+   "traded": true,
+   "trading_day": "2026-11-27",
+   "session_close": "2026-11-27T15:30:00+09:00",
+   "price_source": "Naver Finance mobile API (m.stock.naver.com/api/stocks/up/{KOSPI,KOSDAQ}) — KRX-based change vs prior KRX close; cross-checked with Yahoo Finance .KS/.KQ daily closes (some Yahoo/Naver closes differ by NXT/integrated pricing; Naver KRX-flagged ratios used for ranking)",
+   "exclusions": "ETF/ETN (stockEndType), preferred (code not ending 0 / name 우), SPAC, REIT",
+   "top30": [
+    {
+     "rank": 1,
+     "code": "439960",
+     "name": "코스모로보틱스",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 30.0,
+     "naver_close": "5,720",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 4400.0,
+     "yahoo_close": 5720.0,
+     "yahoo_pct": 30.0
+    },
+    {
+     "rank": 2,
+     "code": "115180",
+     "name": "큐리언트",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 30.0,
+     "naver_close": "15,730",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 12100.0,
+     "yahoo_close": 15730.0,
+     "yahoo_pct": 30.0
+    },
+    {
+     "rank": 3,
+     "code": "381620",
+     "name": "제닉스로보틱스",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 29.98,
+     "naver_close": "8,020",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 6170.0,
+     "yahoo_close": 8020.0,
+     "yahoo_pct": 29.98
+    },
+    {
+     "rank": 4,
+     "code": "224060",
+     "name": "더코디",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 29.97,
+     "naver_close": "1,431",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 1101.0,
+     "yahoo_close": 1431.0,
+     "yahoo_pct": 29.97
+    },
+    {
+     "rank": 5,
+     "code": "138360",
+     "name": "앤로보틱스",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 29.97,
+     "naver_close": "1,483",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 1141.0,
+     "yahoo_close": 1483.0,
+     "yahoo_pct": 29.97
+    },
+    {
+     "rank": 6,
+     "code": "012160",
+     "name": "영흥",
+     "market": "KOSPI",
+     "pct_naver_krx": 29.95,
+     "naver_close": "1,970",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 1516.0,
+     "yahoo_close": 1920.0,
+     "yahoo_pct": 26.65
+    },
+    {
+     "rank": 7,
+     "code": "088280",
+     "name": "쏘닉스",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 29.95,
+     "naver_close": "3,645",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 2805.0,
+     "yahoo_close": 3645.0,
+     "yahoo_pct": 29.95
+    },
+    {
+     "rank": 8,
+     "code": "078590",
+     "name": "휴림에이텍",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 29.94,
+     "naver_close": "4,405",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 3390.0,
+     "yahoo_close": 4405.0,
+     "yahoo_pct": 29.94
+    },
+    {
+     "rank": 9,
+     "code": "317830",
+     "name": "에스피시스템스",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 29.93,
+     "naver_close": "4,580",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 3525.0,
+     "yahoo_close": 4580.0,
+     "yahoo_pct": 29.93
+    },
+    {
+     "rank": 10,
+     "code": "355390",
+     "name": "크라우드웍스",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 29.91,
+     "naver_close": "760",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 585.0,
+     "yahoo_close": 760.0,
+     "yahoo_pct": 29.91
+    },
+    {
+     "rank": 11,
+     "code": "129920",
+     "name": "대성하이텍",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 29.9,
+     "naver_close": "7,950",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 6120.0,
+     "yahoo_close": 7950.0,
+     "yahoo_pct": 29.9
+    },
+    {
+     "rank": 12,
+     "code": "466100",
+     "name": "클로봇",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 29.87,
+     "naver_close": "23,650",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 18210.0,
+     "yahoo_close": 23650.0,
+     "yahoo_pct": 29.87
+    },
+    {
+     "rank": 13,
+     "code": "070300",
+     "name": "퀀텀레일",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 29.83,
+     "naver_close": "235",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 181.0,
+     "yahoo_close": 235.0,
+     "yahoo_pct": 29.83
+    },
+    {
+     "rank": 14,
+     "code": "298380",
+     "name": "에이비엘바이오",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 29.63,
+     "naver_close": "47,900",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 36950.0,
+     "yahoo_close": 46750.0,
+     "yahoo_pct": 26.52
+    },
+    {
+     "rank": 15,
+     "code": "348370",
+     "name": "엔켐",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 26.61,
+     "naver_close": "10,610",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 8380.0,
+     "yahoo_close": 10670.0,
+     "yahoo_pct": 27.33
+    },
+    {
+     "rank": 16,
+     "code": "476060",
+     "name": "온코닉테라퓨틱스",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 25.42,
+     "naver_close": "13,370",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 10660.0,
+     "yahoo_close": 12050.0,
+     "yahoo_pct": 13.04
+    },
+    {
+     "rank": 17,
+     "code": "340450",
+     "name": "지씨지놈",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 25.37,
+     "naver_close": "10,130",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 8080.0,
+     "yahoo_close": 10180.0,
+     "yahoo_pct": 25.99
+    },
+    {
+     "rank": 18,
+     "code": "026910",
+     "name": "광진실업",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 25.32,
+     "naver_close": "1,490",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 1189.0,
+     "yahoo_close": 1430.0,
+     "yahoo_pct": 20.27
+    },
+    {
+     "rank": 19,
+     "code": "009470",
+     "name": "삼화전기",
+     "market": "KOSPI",
+     "pct_naver_krx": 24.24,
+     "naver_close": "28,450",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 22900.0,
+     "yahoo_close": 28900.0,
+     "yahoo_pct": 26.2
+    },
+    {
+     "rank": 20,
+     "code": "471800",
+     "name": "에이엘로봇",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 23.8,
+     "naver_close": "11,340",
+     "yahoo_prev_date": "2026-11-27",
+     "yahoo_prev_close": 11360.0,
+     "yahoo_close": 11360.0,
+     "yahoo_pct": 0.0
+    },
+    {
+     "rank": 21,
+     "code": "0147B0",
+     "name": "래블업",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 23.03,
+     "naver_close": "12,180",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 9900.0,
+     "yahoo_close": 12340.0,
+     "yahoo_pct": 24.65
+    },
+    {
+     "rank": 22,
+     "code": "389030",
+     "name": "지니너스",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 22.86,
+     "naver_close": "1,424",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 1159.0,
+     "yahoo_close": 1404.0,
+     "yahoo_pct": 21.14
+    },
+    {
+     "rank": 23,
+     "code": "0082N0",
+     "name": "카나프테라퓨틱스",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 22.71,
+     "naver_close": "9,240",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 7530.0,
+     "yahoo_close": 9120.0,
+     "yahoo_pct": 21.12
+    },
+    {
+     "rank": 24,
+     "code": "174900",
+     "name": "앱클론",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 22.5,
+     "naver_close": "24,500",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 20000.0,
+     "yahoo_close": 24850.0,
+     "yahoo_pct": 24.25
+    },
+    {
+     "rank": 25,
+     "code": "141080",
+     "name": "리가켐바이오",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 22.05,
+     "naver_close": "69,200",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 56700.0,
+     "yahoo_close": 68900.0,
+     "yahoo_pct": 21.52
+    },
+    {
+     "rank": 26,
+     "code": "475830",
+     "name": "오름테라퓨틱",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 21.76,
+     "naver_close": "15,890",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 13050.0,
+     "yahoo_close": 15730.0,
+     "yahoo_pct": 20.54
+    },
+    {
+     "rank": 27,
+     "code": "084850",
+     "name": "아이티엠반도체",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 21.76,
+     "naver_close": "6,770",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 5560.0,
+     "yahoo_close": 6400.0,
+     "yahoo_pct": 15.11
+    },
+    {
+     "rank": 28,
+     "code": "032500",
+     "name": "케이엠더블유",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 21.33,
+     "naver_close": "25,600",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 21100.0,
+     "yahoo_close": 25950.0,
+     "yahoo_pct": 22.99
+    },
+    {
+     "rank": 29,
+     "code": "232680",
+     "name": "라온로보틱스",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 21.18,
+     "naver_close": "15,220",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 12560.0,
+     "yahoo_close": 15290.0,
+     "yahoo_pct": 21.74
+    },
+    {
+     "rank": 30,
+     "code": "189300",
+     "name": "인텔리안테크",
+     "market": "KOSDAQ",
+     "pct_naver_krx": 21.04,
+     "naver_close": "55,800",
+     "yahoo_prev_date": "2026-11-26",
+     "yahoo_prev_close": 46100.0,
+     "yahoo_close": 55300.0,
+     "yahoo_pct": 19.96
+    }
+   ],
+   "candidates": [
+    {
+     "theme": "반도체 공장 로봇 (삼성전자 반도체 공장 로봇 확대 전망)",
+     "confirmed_stocks_in_top30": [
+      "코스모로보틱스(1)",
+      "제닉스로보틱스(3)",
+      "앤로보틱스(5)",
+      "에스피시스템스(9)",
+      "대성하이텍(11)",
+      "클로봇(12)"
+     ],
+     "other_robot_names_in_top30": [
+      "휴림에이텍(8)",
+      "에이엘로봇(20)",
+      "라온로보틱스(29)"
+     ],
+     "confirmed_count": 6,
+     "outlets": 4,
+     "meets": true,
+     "event": "2026-11-26 SEMI Robot Safety TF 자료: 삼성전자 반도체 부문 로봇 약 100대 → 2030년 1만대 이상 가능 전망; 삼성 DS 로보틱스팀 신설 보도"
+    },
+    {
+     "theme": "항암 신약 바이오",
+     "stocks": [
+      "큐리언트",
+      "에이비엘바이오",
+      "지씨지놈",
+      "카나프테라퓨틱스",
+      "앱클론",
+      "리가켐바이오",
+      "오름테라퓨틱"
+     ],
+     "meets": false,
+     "reason": "기사들이 개별 신규 공시·구체적 사건 없이 업종 전반 강세로 설명 — 구체적 공통 사건 미확인"
+    }
+   ],
+   "selected": "반도체 공장 로봇"
+  },
+  "US": {
+   "traded": true,
+   "trading_day": "2026-11-27",
+   "session_close": "2026-11-27T13:00:00-05:00 (early close, day after Thanksgiving) = 2026-11-28T03:00:00+09:00",
+   "price_source": "Yahoo Finance custom screener (yfinance.screen, region us, exchanges NMS/NYQ/NGM/NCM, percentchange>0, no price/cap/volume floor, 1000 rows paged) + Nasdaq Trader nasdaqlisted/otherlisted (File Creation 1127202617:01) common/ADR filter + Yahoo daily chart closes 2026-11-25 vs 2026-11-27",
+   "top30": [
+    {
+     "rank": 1,
+     "symbol": "SPRC",
+     "exchange": "Nasdaq",
+     "name": "SciSparc Ltd. - Ordinary Shares",
+     "prev_date": "2026-11-24",
+     "prev_close": 0.17900000512599945,
+     "close": 1.399999976158142,
+     "pct": null,
+     "screener_pct": 39.44,
+     "note": "Yahoo chart has no 2026-11-25 close (likely reverse split); screener change 39.44% places it in top 30 either way; excluded from theme use"
+    },
+    {
+     "rank": 2,
+     "symbol": "DCX",
+     "exchange": "Nasdaq",
+     "name": "Digital Currency X Technology Inc. - Class A Ordinary Shares",
+     "prev_date": "2026-11-25",
+     "prev_close": 0.4830000102519989,
+     "close": 1.1699999570846558,
+     "pct": 142.24,
+     "screener_pct": 142.39,
+     "note": null
+    },
+    {
+     "rank": 3,
+     "symbol": "POM",
+     "exchange": "Nasdaq",
+     "name": "POMDOCTOR LIMITED - Class A Ordinary Shares",
+     "prev_date": "2026-11-25",
+     "prev_close": 1.6100000143051147,
+     "close": 3.119999885559082,
+     "pct": 93.79,
+     "screener_pct": 93.79,
+     "note": null
+    },
+    {
+     "rank": 4,
+     "symbol": "MNDR",
+     "exchange": "Nasdaq",
+     "name": "Mobile-health Network Solutions - Class A Ordinary Shares",
+     "prev_date": "2026-11-25",
+     "prev_close": 0.5049999952316284,
+     "close": 0.9215999841690063,
+     "pct": 82.5,
+     "screener_pct": 82.57,
+     "note": null
+    },
+    {
+     "rank": 5,
+     "symbol": "AEHL",
+     "exchange": "Nasdaq",
+     "name": "Antelope Enterprise Holdings Limited - Class A Ordinary Shares",
+     "prev_date": "2026-11-25",
+     "prev_close": 7.139999866485596,
+     "close": 12.899999618530273,
+     "pct": 80.67,
+     "screener_pct": 80.67,
+     "note": null
+    },
+    {
+     "rank": 6,
+     "symbol": "KIDZ",
+     "exchange": "Nasdaq",
+     "name": "KIDZ AI Inc. - Class B Common Stock",
+     "prev_date": "2026-11-25",
+     "prev_close": 0.6489999890327454,
+     "close": 1.0299999713897705,
+     "pct": 58.71,
+     "screener_pct": 58.78,
+     "note": null
+    },
+    {
+     "rank": 7,
+     "symbol": "AMOD",
+     "exchange": "Nasdaq",
+     "name": "Alpha Modus Holdings, Inc. - Class A Common Stock",
+     "prev_date": "2026-11-25",
+     "prev_close": 0.6610000133514404,
+     "close": 1.0199999809265137,
+     "pct": 54.31,
+     "screener_pct": 54.29,
+     "note": null
+    },
+    {
+     "rank": 8,
+     "symbol": "DOGZ",
+     "exchange": "Nasdaq",
+     "name": "Dogness (International) Corporation - Class A Common Stock",
+     "prev_date": "2026-11-25",
+     "prev_close": 0.2282000035047531,
+     "close": 0.35199999809265137,
+     "pct": 54.25,
+     "screener_pct": 54.25,
+     "note": null
+    },
+    {
+     "rank": 9,
+     "symbol": "PDC",
+     "exchange": "Nasdaq",
+     "name": "Perpetuals.com Ltd - American Depositary Shares",
+     "prev_date": "2026-11-25",
+     "prev_close": 0.5189999938011169,
+     "close": 0.7699999809265137,
+     "pct": 48.36,
+     "screener_pct": 48.51,
+     "note": null
+    },
+    {
+     "rank": 10,
+     "symbol": "XCUR",
+     "exchange": "Nasdaq",
+     "name": "Exicure, Inc. - Common Stock",
+     "prev_date": "2026-11-25",
+     "prev_close": 0.9700000286102295,
+     "close": 1.399999976158142,
+     "pct": 44.33,
+     "screener_pct": 45.83,
+     "note": null
+    },
+    {
+     "rank": 11,
+     "symbol": "RETO",
+     "exchange": "Nasdaq",
+     "name": "ReTo Eco-Solutions, Inc. - Class A Shares",
+     "prev_date": "2026-11-25",
+     "prev_close": 3.819999933242798,
+     "close": 5.480000019073486,
+     "pct": 43.46,
+     "screener_pct": 43.46,
+     "note": null
+    },
+    {
+     "rank": 12,
+     "symbol": "AIIO",
+     "exchange": "Nasdaq",
+     "name": "Robo.ai Inc. - Class B Ordinary Shares",
+     "prev_date": "2026-11-25",
+     "prev_close": 5.170000076293945,
+     "close": 7.329999923706055,
+     "pct": 41.78,
+     "screener_pct": 41.78,
+     "note": null
+    },
+    {
+     "rank": 13,
+     "symbol": "SCLX",
+     "exchange": "Nasdaq",
+     "name": "Scilex Holding Company - Common Stock",
+     "prev_date": "2026-11-25",
+     "prev_close": 0.6449999809265137,
+     "close": 0.9089999794960022,
+     "pct": 40.93,
+     "screener_pct": 40.95,
+     "note": null
+    },
+    {
+     "rank": 14,
+     "symbol": "UFG",
+     "exchange": "Nasdaq",
+     "name": "Uni-Fuels Holdings Limited - Class A Ordinary Shares",
+     "prev_date": "2026-11-25",
+     "prev_close": 1.7200000286102295,
+     "close": 2.4100000858306885,
+     "pct": 40.12,
+     "screener_pct": 40.12,
+     "note": null
+    },
+    {
+     "rank": 15,
+     "symbol": "ECX",
+     "exchange": "Nasdaq",
+     "name": "ECARX Holdings Inc. - Class A Ordinary shares",
+     "prev_date": "2026-11-25",
+     "prev_close": 0.5849999785423279,
+     "close": 0.8069000244140625,
+     "pct": 37.93,
+     "screener_pct": 37.96,
+     "note": null
+    },
+    {
+     "rank": 16,
+     "symbol": "FOFO",
+     "exchange": "Nasdaq",
+     "name": "Hang Feng Technology Innovation Co., Ltd. - Class A Ordinary Shares",
+     "prev_date": "2026-11-25",
+     "prev_close": 1.8600000143051147,
+     "close": 2.559999942779541,
+     "pct": 37.63,
+     "screener_pct": 38.38,
+     "note": null
+    },
+    {
+     "rank": 17,
+     "symbol": "BBCI",
+     "exchange": "Nasdaq",
+     "name": "Bradbury Capital Inc. - Ordinary Shares",
+     "prev_date": "2026-11-25",
+     "prev_close": 2.2100000381469727,
+     "close": 3.0399999618530273,
+     "pct": 37.56,
+     "screener_pct": 37.56,
+     "note": null
+    },
+    {
+     "rank": 18,
+     "symbol": "FISN",
+     "exchange": "Nasdaq",
+     "name": "Deep Fission, Inc. - Common Stock",
+     "prev_date": "2026-11-25",
+     "prev_close": 2.8299999237060547,
+     "close": 3.799999952316284,
+     "pct": 34.28,
+     "screener_pct": 34.28,
+     "note": null
+    },
+    {
+     "rank": 19,
+     "symbol": "RAYA",
+     "exchange": "Nasdaq",
+     "name": "Erayak Power Solution Group Inc. - Class A Ordinary Shares",
+     "prev_date": "2026-11-25",
+     "prev_close": 0.6549999713897705,
+     "close": 0.8747000098228455,
+     "pct": 33.54,
+     "screener_pct": 33.54,
+     "note": null
+    },
+    {
+     "rank": 20,
+     "symbol": "NXAT",
+     "exchange": "Nasdaq",
+     "name": "Nexus Advanced Technologies Inc. - Ordinary Shares",
+     "prev_date": "2026-11-25",
+     "prev_close": 0.6449999809265137,
+     "close": 0.8604000210762024,
+     "pct": 33.4,
+     "screener_pct": 33.44,
+     "note": null
+    },
+    {
+     "rank": 21,
+     "symbol": "WXM",
+     "exchange": "Nasdaq",
+     "name": "WF International Limited - Ordinary Shares",
+     "prev_date": "2026-11-25",
+     "prev_close": 1.0800000429153442,
+     "close": 1.4299999475479126,
+     "pct": 32.41,
+     "screener_pct": 32.41,
+     "note": null
+    },
+    {
+     "rank": 22,
+     "symbol": "LOT",
+     "exchange": "Nasdaq",
+     "name": "Lotus Technology Inc. - American Depositary Shares",
+     "prev_date": "2026-11-25",
+     "prev_close": 0.20499999821186066,
+     "close": 0.2685000002384186,
+     "pct": 30.98,
+     "screener_pct": 31.3,
+     "note": null
+    },
+    {
+     "rank": 23,
+     "symbol": "SIDU",
+     "exchange": "Nasdaq",
+     "name": "Sidus Space, Inc. - Class A Common Stock",
+     "prev_date": "2026-11-25",
+     "prev_close": 0.8220000267028809,
+     "close": 1.0700000524520874,
+     "pct": 30.17,
+     "screener_pct": 30.17,
+     "note": null
+    },
+    {
+     "rank": 24,
+     "symbol": "GOVX",
+     "exchange": "Nasdaq",
+     "name": "GeoVax Labs, Inc. - Common Stock",
+     "prev_date": "2026-11-25",
+     "prev_close": 1.7599999904632568,
+     "close": 2.2899999618530273,
+     "pct": 30.11,
+     "screener_pct": 30.11,
+     "note": null
+    },
+    {
+     "rank": 25,
+     "symbol": "WETO",
+     "exchange": "Nasdaq",
+     "name": "Wetour Robotics Limited - Ordinary Shares",
+     "prev_date": "2026-11-25",
+     "prev_close": 0.5320000052452087,
+     "close": 0.6884999871253967,
+     "pct": 29.42,
+     "screener_pct": 29.32,
+     "note": null
+    },
+    {
+     "rank": 26,
+     "symbol": "NA",
+     "exchange": "Nasdaq",
+     "name": "Nano Labs Ltd - Class A Ordinary Shares",
+     "prev_date": "2026-11-25",
+     "prev_close": 0.9900000095367432,
+     "close": 1.2799999713897705,
+     "pct": 29.29,
+     "screener_pct": 29.95,
+     "note": null
+    },
+    {
+     "rank": 27,
+     "symbol": "VEEA",
+     "exchange": "Nasdaq",
+     "name": "Veea Inc. - Common Stock",
+     "prev_date": "2026-11-25",
+     "prev_close": 4.920000076293945,
+     "close": 6.360000133514404,
+     "pct": 29.27,
+     "screener_pct": 29.27,
+     "note": null
+    },
+    {
+     "rank": 28,
+     "symbol": "SEAT",
+     "exchange": "Nasdaq",
+     "name": "Vivid Seats Inc. - Class A common stock",
+     "prev_date": "2026-11-25",
+     "prev_close": 2.059999942779541,
+     "close": 2.6600000858306885,
+     "pct": 29.13,
+     "screener_pct": 29.13,
+     "note": null
+    },
+    {
+     "rank": 29,
+     "symbol": "ESLA",
+     "exchange": "Nasdaq",
+     "name": "Estrella Immunopharma, Inc. - Common Stock",
+     "prev_date": "2026-11-25",
+     "prev_close": 0.27300000190734863,
+     "close": 0.35010001063346863,
+     "pct": 28.24,
+     "screener_pct": 28.24,
+     "note": null
+    },
+    {
+     "rank": 30,
+     "symbol": "LAES",
+     "exchange": "Nasdaq",
+     "name": "SEALSQ Corp - Ordinary Shares",
+     "prev_date": "2026-11-25",
+     "prev_close": 1.0700000524520874,
+     "close": 1.3700000047683716,
+     "pct": 28.04,
+     "screener_pct": 28.04,
+     "note": null
+    }
+   ],
+   "candidates": [
+    {
+     "theme": "crypto-linked (DCX, PDC, NA)",
+     "meets": false,
+     "reason": "Bitcoin rebound coverage names MSTR/BMNR etc., no article ties these top-30 names to a common cause"
+    },
+    {
+     "theme": "robotics (WETO, AIIO)",
+     "meets": false,
+     "reason": "WETO rose on its China business exit (company-specific); no article for AIIO"
+    },
+    {
+     "theme": "Chinese small caps / biotech microcaps",
+     "meets": false,
+     "reason": "No in-window articles stating a common catalyst"
+    }
+   ],
+   "selected": null,
+   "status": "조건을 충족한 상승 테마 없음"
+  }
+ },
+ "articles": [
+  {
+   "url": "https://www.fnnews.com/news/202611270925167226",
+   "outlet": "파이낸셜뉴스",
+   "published": "2026-11-27T09:29+09:00",
+   "evidence": "SEMI 로봇안전TF 자료(11/26): 삼성 반도체 부문 로봇 100대→2030년 1만대 이상 전망에 제닉스로보틱스·에스피시스템스 상한가, 코스모로보틱스 급등. 전망치일 뿐이라는 점"
+  },
+  {
+   "url": "https://www.mt.co.kr/stock/2026/11/27/2026112710482896069",
+   "outlet": "머니투데이",
+   "published": "2026-11-27T11:03+09:00",
+   "evidence": "삼성 DS 로보틱스팀 신설 보도·CES 2027 휴머노이드 기대에 코스모로보틱스·대성하이텍·앤로보틱스·클로봇·에이엘로봇 급등; 휴머노이드 공급망 형성 초기·참여 기업 불확실"
+  },
+  {
+   "url": "https://www.etoday.co.kr/news/view/2654037",
+   "outlet": "이투데이",
+   "published": "2026-11-27T16:03+09:00",
+   "evidence": "로봇주 무더기 상한가, 삼성전자 로봇 사업 확대 기대; 코스모로보틱스 의료·재활 로봇, 에스피시스템스 산업 자동화 장비·로봇 시스템, 클로봇 자율주행·관제 솔루션"
+  },
+  {
+   "url": "https://m.news.nate.com/view/20261127n07997",
+   "outlet": "조세일보",
+   "published": "2026-11-27T09:56+09:00",
+   "evidence": "삼성 반도체 공장 로봇 확대 기대, SEMI 2030년 1만대 전망에 제닉스·에스피시스템스 상한가"
+  },
+  {
+   "url": "https://www.hitnews.co.kr/news/articleView.html?idxno=81183",
+   "outlet": "히트뉴스",
+   "published": "2026-11-27 (not used)",
+   "evidence": "항암 바이오 동반 강세 — 구체적 공통 사건 없음"
+  },
+  {
+   "url": "https://stockstotrade.com/news/wetour-robotics-limited-weto-news-2026-11-27/",
+   "outlet": "StocksToTrade",
+   "published": "2026-11-27",
+   "evidence": "WETO China business exit — company-specific"
+  }
+ ],
+ "korean_final": {
+  "KR": {
+   "theme": "반도체 공장 로봇",
+   "reasons": [
+    "삼성전자 반도체 공장의 로봇이 2030년 1만 대를 넘을 수 있다는 SEMI 전망이 나왔다.",
+    "삼성전자가 반도체 공장용 로봇 기술을 개발할 로보틱스팀을 신설했다는 소식도 더해졌다."
+   ],
+   "glance": "산업용 로봇은 제조 현장의 운반·조립·검사 작업을 자동화하며, 반도체·전자·자동차 공장이 주요 수요처다.",
+   "stocks": [
+    "코스모로보틱스 — 의료·재활 로봇 사업을 하는 로봇 기업",
+    "에스피시스템스 — 산업 자동화 장비와 로봇 시스템 공급",
+    "클로봇 — 로봇 자율주행과 관제 솔루션 제공"
+   ],
+   "watch": [
+    "로봇 대수 전망은 확정된 계획이 아닌 예상치다.",
+    "휴머노이드 공급망은 형성 초기여서 어느 기업이 참여할지 아직 불확실하다."
+   ]
+  },
+  "US": {
+   "status": "조건을 충족한 상승 테마 없음"
+  }
+ },
+ "english": {
+  "theme": "Chip-fab robots",
+  "reasons": [
+   "A SEMI outlook said robots at Samsung Electronics' chip plants could top 10,000 by 2030.",
+   "News also came that Samsung set up a robotics team to develop robot technology for its chip plants."
+  ],
+  "glance": "Industrial robots automate handling, assembly and inspection on factory floors, with chip, electronics and auto plants as key customers.",
+  "stocks": [
+   "Cosmo Robotics — A robotics company in medical and rehabilitation robots",
+   "SP Systems — Supplies industrial automation equipment and robot systems",
+   "Clobot — Provides autonomous navigation and control solutions for robots"
+  ],
+  "watch": [
+   "The robot count outlook is a projection, not a confirmed plan.",
+   "Humanoid supply chains are still taking shape, so it is unclear which companies will join."
+  ],
+  "expressions": [
+   {
+    "expr": "key customers",
+    "meaning": "주요 수요처"
+   },
+   {
+    "expr": "autonomous navigation",
+    "meaning": "자율주행"
+   },
+   {
+    "expr": "taking shape",
+    "meaning": "형성되는 중인 (take shape)"
+   }
+  ]
+ },
+ "messages": {
+  "theme": {
+   "parent": "📈 **Daily Theme Brief** | 2026-11-28 (토)\n_최근 24시간 마감 정규장·뉴스 · 11/27 07:00 ~ 11/28 07:00 KST_\n\n🇰🇷 **한국** · **반도체 공장 로봇** 📈 상승\n_대상 정규장: 2026-11-27 (현지 거래일)_\n• 삼성전자 반도체 공장의 로봇이 2030년 1만 대를 넘을 수 있다는 SEMI 전망이 나왔다.\n• 삼성전자가 반도체 공장용 로봇 기술을 개발할 로보틱스팀을 신설했다는 소식도 더해졌다.\n\n🇺🇸 **미국**\n_대상 정규장: 2026-11-27 (현지 거래일)_\n• 조건을 충족한 상승 테마 없음\n\n🧵 자세한 내용은 스레드에서 확인",
+   "reply_kr": "🇰🇷 **한국 · 반도체 공장 로봇** 📈 상승\n_대상 정규장: 2026-11-27 (현지 거래일)_\n\n**테마 한눈에**\n• 산업용 로봇은 제조 현장의 운반·조립·검사 작업을 자동화하며, 반도체·전자·자동차 공장이 주요 수요처다.\n\n**관련 종목**\n• 코스모로보틱스 — 의료·재활 로봇 사업을 하는 로봇 기업\n• 에스피시스템스 — 산업 자동화 장비와 로봇 시스템 공급\n• 클로봇 — 로봇 자율주행과 관제 솔루션 제공\n\n**함께 볼 점**\n• 로봇 대수 전망은 확정된 계획이 아닌 예상치다.\n• 휴머노이드 공급망은 형성 초기여서 어느 기업이 참여할지 아직 불확실하다."
+  },
+  "english": {
+   "parent": "📚 **Daily Theme English Brief** | 2026-11-28 (토)\n_최근 24시간 마감 정규장·뉴스 · 11/27 07:00 ~ 11/28 07:00 KST_\n\n🇰🇷 **Korea · Chip-fab robots / 한국 · 반도체 공장 로봇** 📈 Up / 상승\n_대상 정규장: 2026-11-27 (현지 거래일)_\n• A SEMI outlook said robots at Samsung Electronics' chip plants could top 10,000 by 2030.\n  _삼성전자 반도체 공장의 로봇이 2030년 1만 대를 넘을 수 있다는 SEMI 전망이 나왔다._\n• News also came that Samsung set up a robotics team to develop robot technology for its chip plants.\n  _삼성전자가 반도체 공장용 로봇 기술을 개발할 로보틱스팀을 신설했다는 소식도 더해졌다._\n\n🇺🇸 **US / 미국**\n_대상 정규장: 2026-11-27 (현지 거래일)_\n• No rising theme met the criteria / 조건을 충족한 상승 테마 없음\n\n🧵 Theme details in threads / 자세한 내용은 스레드에서 확인",
+   "reply_kr": "🇰🇷 **Korea · Chip-fab robots / 한국 · 반도체 공장 로봇** 📈 Up / 상승\n_대상 정규장: 2026-11-27 (현지 거래일)_\n\n**Theme at a glance / 테마 한눈에**\n• Industrial robots automate handling, assembly and inspection on factory floors, with chip, electronics and auto plants as key customers.\n  _산업용 로봇은 제조 현장의 운반·조립·검사 작업을 자동화하며, 반도체·전자·자동차 공장이 주요 수요처다._\n\n**Related stocks / 관련 종목**\n• Cosmo Robotics — A robotics company in medical and rehabilitation robots\n  _코스모로보틱스 — 의료·재활 로봇 사업을 하는 로봇 기업_\n• SP Systems — Supplies industrial automation equipment and robot systems\n  _에스피시스템스 — 산업 자동화 장비와 로봇 시스템 공급_\n• Clobot — Provides autonomous navigation and control solutions for robots\n  _클로봇 — 로봇 자율주행과 관제 솔루션 제공_\n\n**Points to watch / 함께 볼 점**\n• The robot count outlook is a projection, not a confirmed plan.\n  _로봇 대수 전망은 확정된 계획이 아닌 예상치다._\n• Humanoid supply chains are still taking shape, so it is unclear which companies will join.\n  _휴머노이드 공급망은 형성 초기여서 어느 기업이 참여할지 아직 불확실하다._\n\n📝 `key customers` 주요 수요처 · `autonomous navigation` 자율주행 · `taking shape` 형성되는 중인 (take shape)"
+  }
+ },
+ "message_lengths": {
+  "theme.parent": 338,
+  "theme.reply_kr": 318,
+  "english.parent": 637,
+  "english.reply_kr": 1032
+ },
+ "verified": true,
+ "posted": {
+  "theme": {
+   "channel": "C0CDFHG8PL7",
+   "parent_ts": "1795817939.453679",
+   "reply_kr_ts": "1795817944.407079"
+  },
+  "english": {
+   "channel": "C0CMAQC3C0N",
+   "parent_ts": "1795817949.808999",
+   "reply_kr_ts": "1795817956.440209"
+  }
+ },
+ "errors": []
+}
